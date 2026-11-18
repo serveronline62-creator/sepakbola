@@ -3,222 +3,1343 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Pemotong Video Otomatis</title>
+<title>Filter &amp; Extract File Excel Penerimaan Transaksi ASA19 & ASA4</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
-  body { font-family: system-ui, sans-serif; max-width: 820px; margin: 2rem auto; padding: 0 1rem; background: #f5f5f7; }
-  .container { background: #fff; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
-  h1 { color: #222; margin-top: 0; }
-  .input-group { margin-bottom: 1rem; }
-  label { display: block; margin-bottom: .4rem; font-weight: 600; color: #333; }
-  input[type="file"], input[type="number"] {
-    width: 100%; padding: .6rem; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;
+  :root{
+    --panel:#ffffff; --soft:#f8fafc; --line:#e2e8f0;
+    --txt:#0f172a; --muted:#64748b;
+    --brand:#c00000; --brand2:#990000; --ok:#c00000; --warn:#d97706;
+    --radius:14px;
   }
-  button {
-    background: #007bff; color: #fff; border: 0; padding: .8rem 1.6rem;
-    border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600;
-    transition: background .2s;
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:"Segoe UI",Inter,Roboto,system-ui,-apple-system,sans-serif;
+    background:#f3f4f6; /* Latar belakang abu-abu terang */
+    color:var(--txt); min-height:100vh;
   }
-  button:hover:not(:disabled) { background: #0069d9; }
-  button:disabled { background: #b8b8b8; cursor: not-allowed; }
-  #status { margin-top: 1rem; padding: .75rem 1rem; background: #eef4ff; border-left: 4px solid #007bff; border-radius: 4px; color: #1a1a1a; font-family: ui-monospace, monospace; font-size: .9rem; min-height: 1.2rem; }
-  #results { margin-top: 2rem; }
-  .clip-item { background: #f9f9f9; padding: 1rem; border-radius: 6px; margin-bottom: .75rem; border: 1px solid #eaeaea; }
-  .clip-item p { margin: 0 0 .5rem 0; font-size: .9rem; color: #444; }
-  .clip-item a { color: #007bff; font-weight: 600; text-decoration: none; }
-  .clip-item a:hover { text-decoration: underline; }
-  .hint { font-size: .85rem; color: #666; margin-top: .3rem; }
+  .wrap{max-width:1500px;margin:0 auto;padding:26px 20px 60px}
+
+  /* ================= HEADER BARU (MIRIP J&T / POLYTRON) ================= */
+  .app-header {
+    display: flex;
+    align-items: stretch;
+    background: #e5e7eb; /* Abu-abu terang untuk area tengah */
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    height: 64px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .logo-box {
+    background: #ffffff;
+    color: #c00000;
+    font-weight: 900;
+    font-size: 22px;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    letter-spacing: -0.5px;
+  }
+  .logo-box span {
+    font-weight: 300;
+    margin-left: 5px;
+    color: #333;
+  }
+  .header-title {
+    flex: 1;
+    padding: 0 24px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #4b5563;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .header-right {
+    background: #c00000;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 40px 0 60px;
+    clip-path: polygon(24px 0, 100% 0, 100% 100%, 0 100%); /* Efek miring di kiri */
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  /* ====================================================================== */
+
+  .tabs{display:flex;gap:8px;margin:0 0 -1px;position:relative;z-index:3}
+  
+  .tab{
+    padding:11px 26px;border-radius:12px 12px 0 0;font-size:13.5px;font-weight:600;
+    background:#e5e7eb;color:#4b5563;cursor:pointer;
+    border:1px solid transparent;border-bottom:none;transition:.18s;user-select:none;
+  }
+  .tab:hover{background:#d1d5db}
+  
+  .tab.active{background:#c00000;color:#fff;border-color:#c00000;cursor:default}
+  .tab .badge{
+    display:inline-block;margin-left:8px;font-size:10.5px;background:#d1d5db;color:#4b5563;
+    padding:2px 7px;border-radius:999px;font-weight:700;letter-spacing:.3px;
+  }
+  .tab.active .badge{background:#fff;color:#c00000}
+
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:0 10px 30px rgba(15,23,42,.08);padding:20px;margin-bottom:18px;
+  }
+  .card h2{margin:0 0 4px;font-size:15px}
+  .card .sub{color:var(--muted);font-size:12.5px;margin:0 0 16px}
+  code{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:12px}
+
+  .drop{
+    border:2px dashed #cbd5e1;border-radius:14px;padding:34px 20px;text-align:center;
+    background:#f8fafc;transition:.18s;cursor:pointer;display:block;
+  }
+  .drop:hover,.drop.over{border-color:#c00000;background:#fef2f2}
+  .drop .ico{font-size:34px;line-height:1;margin-bottom:10px}
+  .drop b{display:block;font-size:14.5px;margin-bottom:4px}
+  .drop span{font-size:12.5px;color:var(--muted)}
+  input[type=file]{display:none}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+  .field label{display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:5px}
+  .field input,.field select{
+    width:100%;padding:9px 11px;border:1px solid #cbd5e1;border-radius:9px;font-size:13px;
+    background:#fff;color:var(--txt);outline:none;transition:.15s;font-family:inherit;
+  }
+  .field input:focus,.field select:focus{border-color:#c00000;box-shadow:0 0 0 3px rgba(192,0,0,.14)}
+
+  .actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px;padding-top:16px;border-top:1px dashed var(--line)}
+  button{
+    font-family:inherit;font-size:13px;font-weight:600;border-radius:10px;padding:10px 18px;
+    border:1px solid transparent;cursor:pointer;transition:.15s;
+  }
+  .btn-ghost{background:#fff;border-color:#cbd5e1;color:#334155}
+  .btn-ghost:hover{background:var(--soft)}
+  .btn-ok{background:#c00000;color:#fff}
+  .btn-ok:hover{background:#990000}
+  .btn-danger{background:#fff;border-color:#fecaca;color:#b91c1c}
+  .btn-danger:hover{background:#fef2f2;border-color:#fca5a5}
+  .btn-warn{background:#fff;border-color:#fde68a;color:#b45309}
+  .btn-warn:hover{background:#fffbeb;border-color:#fcd34d}
+  button:disabled{opacity:.5;cursor:not-allowed}
+
+  .chk{display:flex;align-items:center;gap:7px;font-size:12.5px;color:#334155;user-select:none;cursor:pointer}
+  .chk input{width:16px;height:16px;accent-color:#c00000}
+
+  .info{
+    display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:10px;
+    font-size:12.5px;line-height:1.5;margin-top:14px;
+  }
+  .info.ok{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+  .info.warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
+  .info .ico{font-size:16px;line-height:1.2;flex-shrink:0}
+  .info b{font-weight:700}
+  .info code{background:rgba(0,0,0,.06)}
+
+  .stats{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+  .pill{
+    background:#f8fafc;border:1px solid var(--line);border-radius:999px;padding:7px 15px;font-size:12.5px;color:#334155;
+  }
+  .pill b{color:#c00000}
+  .pill.ok b{color:#c00000}
+  .pill.danger b{color:#b91c1c}
+
+  .tablebox{overflow:auto;max-height:60vh;border:1px solid var(--line);border-radius:12px;background:#fff}
+  table{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px}
+  
+  thead th{
+    position:sticky;top:0;z-index:2;background:#c00000;color:#fff;font-weight:600;
+    padding:10px 12px;text-align:left;white-space:nowrap;border-right:1px solid #990000;
+  }
+  thead th:last-child{border-right:none}
+  tbody td{padding:8px 12px;border-bottom:1px solid #f1f5f9;white-space:nowrap;color:#1e293b}
+  tbody tr:nth-child(even) td{background:#fafbfc}
+  tbody tr:hover td{background:#fef2f2}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .empty{padding:40px;text-align:center;color:var(--muted);font-size:13.5px}
+  .hidden{display:none !important}
+
+  .toast{
+    position:fixed;right:22px;bottom:22px;background:#0f172a;color:#fff;padding:12px 18px;border-radius:11px;
+    font-size:13px;box-shadow:0 12px 28px rgba(0,0,0,.3);opacity:0;transform:translateY(12px);
+    transition:.25s;pointer-events:none;z-index:99;
+  }
+  .toast.show{opacity:1;transform:translateY(0)}
+
+  .modal{
+    position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;
+    align-items:center;justify-content:center;z-index:100;padding:20px;
+  }
+  .modal.show{display:flex}
+  .modal-box{
+    background:#fff;border-radius:14px;padding:22px;max-width:440px;width:100%;
+    box-shadow:0 24px 60px rgba(0,0,0,.35);
+  }
+  .modal-box h3{margin:0 0 8px;font-size:16px}
+  .modal-box p{margin:0 0 18px;font-size:13.5px;color:#334155;line-height:1.55}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px}
+  .modal-actions .btn-ok{background:#dc2626}
+  .modal-actions .btn-ok:hover{background:#b91c1c}
+
+  /* ================= TAP 3 CETAK LABEL — kartu link ================= */
+  .link-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:14px;
+  }
+  .link-card{
+    display:flex;gap:14px;align-items:flex-start;
+    padding:18px;border:1px solid var(--line);border-radius:12px;
+    background:#f8fafc;text-decoration:none;color:var(--txt);
+    transition:.18s;position:relative;
+  }
+  .link-card:hover{
+    border-color:#c00000;background:#fef2f2;
+    box-shadow:0 6px 18px rgba(192,0,0,.12);
+    transform:translateY(-1px);
+  }
+  .link-card-icon{font-size:26px;line-height:1;flex-shrink:0}
+  .link-card-body{flex:1;min-width:0}
+  .link-card-title{font-weight:700;font-size:14px;margin-bottom:4px;color:#c00000}
+  .link-card-desc{font-size:12.5px;color:var(--muted);margin-bottom:8px;line-height:1.5}
+  .link-card-url{
+    font-size:11.5px;color:#c00000;word-break:break-all;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    background:rgba(192,0,0,.06);padding:3px 7px;border-radius:5px;
+    display:inline-block;
+  }
+  .link-card-arrow{
+    font-size:18px;color:var(--muted);transition:.18s;align-self:center;flex-shrink:0;
+  }
+  .link-card:hover .link-card-arrow{color:#c00000;transform:translateX(2px)}
+
+  .settings-note{
+    display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:10px;
+    font-size:12.5px;line-height:1.55;margin-top:16px;
+    background:#fef2f2;border:1px solid #fecaca;color:#991b1b;
+  }
+  .settings-note .ico{font-size:16px;line-height:1.2;flex-shrink:0}
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>✂️ Pemotong Video Otomatis</h1>
-  <p>Unggah video panjang, lalu potong menjadi klip-klip pendek. Semua proses berjalan <strong>di browser Anda</strong> — file tidak diunggah ke mana pun.</p>
+<div class="wrap">
 
-  <div class="input-group">
-    <label for="videoInput">Pilih File Video:</label>
-    <input type="file" id="videoInput" accept="video/*" />
-  </div>
+  <!-- HEADER BARU SEPERTI CONTOH GAMBAR -->
+  <header class="app-header">
+    <div class="logo-box">
+      POLYTRON <span>KUPANG</span>
+    </div>
+    <div class="header-title">
+      Filter &amp; Extract File Excel Penerimaan Transaksi ASA19 &amp; ASA4
+    </div>
+    <div class="header-right">
+      <span class="live-indicator">⚙ Sistem LIVE ON</span>
+    </div>
+  </header>
 
-  <div class="input-group">
-    <label for="durationInput">Durasi per Klip (detik):</label>
-    <input type="number" id="durationInput" value="60" min="1" step="1" />
-    <div class="hint">Contoh: 60 = 1 menit, 30 = 30 detik.</div>
-  </div>
+  <div class="tabs" id="tabsBar"></div>
+  <div class="panel-wrap" id="tabPanels"></div>
+</div>
 
-  <button id="processBtn" disabled>Potong Video</button>
-  <div id="status">Memuat modul FFmpeg…</div>
+<div class="toast" id="toast"></div>
 
-  <div id="results">
-    <h2 style="font-size:1.15rem;">Hasil Klip:</h2>
-    <div id="clipsContainer"></div>
+<div class="modal" id="modalConfirm">
+  <div class="modal-box">
+    <h3 id="modalTitle">Konfirmasi</h3>
+    <p id="modalMsg">Anda yakin?</p>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="modalCancel">Batal</button>
+      <button class="btn-ok" id="modalOk">Ya, Lanjutkan</button>
+    </div>
   </div>
 </div>
 
-<!-- FFmpeg.wasm 0.12.x (UMD) + util -->
-<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
-<script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
 <script>
-(function () {
-  "use strict";
+/* =========================================================================
+   1) KONFIGURASI KOLOM
+   ========================================================================= */
+const TAP1_COLUMNS = [
+  "No","Kode Perusahaan","Site","Nomor Dokumen","Nomor Referensi","Lokasi Tujuan",
+  "Nik Tujuan","Tipe Transaksi","Status","Baris","Part","Deskripsi","Lot","Attribute",
+  "Qty","Satuan","Conversion Qty","Conversion UM","Conversion Value","Nomor Permintaan",
+  "Price Per Unit","Total Value","Mata Uang","Site Parent","Dibuat Oleh","Dibuat Pada",
+  "Dikonfirmasi Oleh","Dikonfirmasi Pada","Diubah Oleh","Diubah Pada"
+];
 
-  const { FFmpeg } = FFmpegWASM;
-  const { fetchFile, toBlobURL } = FFmpegUtil;
+const TAP2_COLUMNS = [
+  "No","Kode Perusahaan","Site","Nomor Dokumen","Nomor Referensi","Lokasi Tujuan",
+  "Nik Tujuan","Tipe Transaksi","Status","Baris","Part","Deskripsi","Lot","Attribute",
+  "Qty","Satuan","Conversion Qty","Conversion UM","Conversion Value","Nomor Permintaan",
+  "Price Per Unit","Total Value","Mata Uang","Site Parent","Dibuat Oleh","Dibuat Pada",
+  "Dikonfirmasi Oleh","Dikonfirmasi Pada","Diubah Oleh","Diubah Pada"
+];
 
-  const ffmpeg = new FFmpeg();
-  let ffmpegLoaded = false;
+const TAP2_EXCLUDED_COLUMNS = [
+  "Tipe Cetak","Um","Qty Konversi","UM Konversi","Nilai Konversi","Qty Alt Konversi",
+  "Qty Reference","Lokasi Dari","Site Dari","NIK Dari","Nama Dari","Kode Gudang Dari",
+  "Lokasi Sampai","Site Sampai","NIK Sampai","Nama Sampai","Kode Gudang Sampai",
+  "DPP / Unit","Total DPP","Total PPN","Total DPP + PPN","No. Aktiva",
+  "Remarks 1","Remarks 2","Diupdate Oleh","Diupdate Tanggal","Diupdate Pada"
+];
 
-  const videoInput   = document.getElementById("videoInput");
-  const durationInput = document.getElementById("durationInput");
-  const processBtn   = document.getElementById("processBtn");
-  const statusDiv    = document.getElementById("status");
-  const clipsContainer = document.getElementById("clipsContainer");
+const NUMERIC_COLS = new Set([
+  "No","Baris","Qty","Conversion Qty","Conversion Value","Price Per Unit","Total Value"
+]);
+const DATE_COLS = new Set(["Dibuat Pada","Dikonfirmasi Pada","Diubah Pada"]);
+const TEXT_COLS = new Set([
+  "Kode Perusahaan","Site","Nomor Dokumen","Nomor Referensi","Lokasi Tujuan",
+  "Tipe Transaksi","Status","Part","Deskripsi","Satuan","Conversion UM",
+  "Mata Uang","Site Parent","Dibuat Oleh","Dikonfirmasi Oleh","Diubah Oleh"
+]);
 
-  let videoFile = null;
+const MAIN_COL_ALIASES = {
+  "Nomor Referensi": [
+    "Nomor Referensi","No Referensi","Nomer Referensi","Nomor Ref",
+    "Referensi","Reference","Ref No","Ref No.","Ref"
+  ],
+  "Lokasi Tujuan": [
+    "Lokasi Tujuan","Lokasi Sampai","Lokasi Tujuan/Sampai",
+    "Destination","Tujuan"
+  ]
+};
 
-  // Log FFmpeg ke console untuk debug
-  ffmpeg.on("log", ({ message }) => console.log("[ffmpeg]", message));
+const COL_ALIASES = {
+  part: ["part","kode part","kode_part","kodeitem","kode item","part number","partnumber","part no","partno","item","item code"],
+  deskripsi: ["deskripsi","description","desc","nama part","part name","nama item","item name","keterangan"],
+  um: ["um","uom","u m","satuan","unit measure","satuan barang"],
+  nomorDokumen: ["nomor dokumen","no dokumen","nodokumen","dokumen","document number","doc no"],
+  nomorReferensi: ["nomor referensi","no referensi","noreferensi","referensi","reference","ref no"],
+  baris: ["baris","line","no baris","line no","line number","item line"],
+  no: ["no","nomor","no urut","no_urut"]
+};
 
-  // Progress per job
-  ffmpeg.on("progress", ({ progress }) => {
-    if (progress > 0 && progress <= 1) {
-      statusDiv.textContent = `Memproses… ${Math.round(progress * 100)}%`;
+const GT_ALIASES = {
+  ref:    ["nomor referensi","no referensi","noreferensi","referensi","reference","ref no","ref no.","ref"],
+  lokasi: ["lokasi sampai","lokasi tujuan","lokasi tujuan/sampai","tujuan","destination","lokasi"],
+  status: ["status"],
+  diupdateTanggal: [
+    "diupdate tanggal","diupdate tgl","tanggal diupdate","tgl diupdate",
+    "update tanggal","tanggal update","updated date","update date",
+    "diupdate pada","last update date"
+  ]
+};
+
+const MAX_PREVIEW_ROWS = 800;
+
+const TAB_CONFIGS = {
+  tap1: {
+    label: "TAP 1",
+    badge: "ASA19 - Penerimaan Pembelian",
+    exportTag: "TAP1",
+    sheetPreference: [/tap\s*1/i, /goods\s*transaction/i, /goods/i, /transaksi\s*barang/i],
+    columns: TAP1_COLUMNS,
+    dateFormat: "dmy",
+    defaultBlankRows: false,
+    excludedDetailColumns: []
+  },
+  tap2: {
+    label: "TAP 2",
+    badge: "ASA4 - Transaksi Barang",
+    exportTag: "TAP2",
+    sheetPreference: [/tap\s*2/i, /goods\s*transaction/i, /goods/i, /transaksi\s*barang/i],
+    columns: TAP2_COLUMNS,
+    dateFormat: "dmy",
+    defaultBlankRows: true,
+    excludedDetailColumns: TAP2_EXCLUDED_COLUMNS,
+    gtOverrides: {
+      statusFromGT: true,
+      dateFromGT:   true
+    },
+    detailOverrides: {
+      satuanFromUM: true
     }
+  },
+
+  /* ---------- TAP 3: CETAK LABEL — hanya daftar tautan ---------- */
+  tap3: {
+    label: "TAP 3",
+    badge: "CETAK LABEL",
+    type: "settings",
+    links: [
+      {
+        icon:  "🏷️",
+        title: "Cetak Label Part QR Code",
+        desc:  "Aplikasi cetak label part dengan QR Code. Membuka di tab baru.",
+        url:   "https://serveronline62-creator.github.io/Cetak-Label-Part-QR-Code-/"
+      },
+      {
+        icon:  "🖨️",
+        title: "Sistem Cetak Label Otomatis REV1",
+        desc:  "Sistem cetak label otomatis versi REV1. Membuka di tab baru.",
+        url:   "https://redspiderbox-ctrl.github.io/Sistem-Cetak-Label-Otomatis-REV1/"
+      }
+    ]
+  }
+};
+
+/* =========================================================================
+   2) UTILITAS
+   ========================================================================= */
+const $ = id => document.getElementById(id);
+const norm = s => String(s ?? "").replace(/\s+/g," ").trim().toLowerCase();
+const pad2 = n => String(n).padStart(2,"0");
+
+const escapeHtml = s => String(s).replace(/[&<>"']/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const escapeAttr = escapeHtml;
+
+function isoDate(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+
+function toDateOnly(v){
+  if (v instanceof Date) return isoDate(v);
+  const s = String(v ?? "").trim();
+  if (!s) return "";
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return `${m[3]}-${pad2(m[2])}-${pad2(m[1])}`;
+  const d = new Date(s);
+  return isNaN(d) ? "" : isoDate(d);
+}
+
+function formatDateForTab(value, fmt){
+  if (value === null || value === undefined || value === "") return "";
+  const s = String(value).trim();
+  if (fmt === "dmy"){
+    let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (m) return `${pad2(m[1])}/${pad2(m[2])}/${m[3]}`;
+    m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+    const d = value instanceof Date ? value : new Date(s);
+    if (isNaN(d)) return s;
+    return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}`;
+  }
+  let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return `${m[3]}-${pad2(m[2])}-${pad2(m[1])} 00:00:00`;
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}):(\d{2}))?/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]} ${m[4]??"00"}:${m[5]??"00"}:${m[6]??"00"}`;
+  const d = value instanceof Date ? value : new Date(s);
+  if (isNaN(d)) return s;
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())} ` +
+         `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+}
+
+function formatDateOnlyValue(value, fmt){
+  if (value === null || value === undefined || value === "" || value === 0) return "";
+  if (typeof value === "number"){
+    try {
+      const pattern = fmt === "dmy" ? "dd/mm/yyyy" : "yyyy-mm-dd";
+      const result = XLSX.SSF.format(pattern, value);
+      if (result && !String(result).includes("#")) return result;
+    } catch(e){}
+  }
+  const formatted = formatDateForTab(value, fmt);
+  if (fmt !== "dmy") return String(formatted).split(" ")[0];
+  return formatted;
+}
+
+function todayStamp(){
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}`;
+}
+
+let toastTm;
+function toast(msg){
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTm);
+  toastTm = setTimeout(() => t.classList.remove("show"), 2800);
+}
+
+function confirmDialog(title, message, okLabel){
+  return new Promise(resolve => {
+    const modal = $("modalConfirm");
+    $("modalTitle").textContent = title || "Konfirmasi";
+    $("modalMsg").textContent   = message || "Anda yakin?";
+    $("modalOk").textContent    = okLabel || "Ya, Lanjutkan";
+    const cleanup = (val) => {
+      modal.classList.remove("show");
+      $("modalOk").removeEventListener("click", onOk);
+      $("modalCancel").removeEventListener("click", onCancel);
+      modal.removeEventListener("click", onOverlay);
+      document.removeEventListener("keydown", onKey);
+      resolve(val);
+    };
+    const onOk      = () => cleanup(true);
+    const onCancel  = () => cleanup(false);
+    const onOverlay = e => { if (e.target === modal) cleanup(false); };
+    const onKey     = e => { if (e.key === "Escape") cleanup(false); };
+    $("modalOk").addEventListener("click", onOk);
+    $("modalCancel").addEventListener("click", onCancel);
+    modal.addEventListener("click", onOverlay);
+    document.addEventListener("keydown", onKey);
+    modal.classList.add("show");
+    $("modalOk").focus();
   });
+}
 
-  // ---------- Load FFmpeg core (sekali saja) ----------
-  async function loadFFmpeg() {
-    if (ffmpegLoaded) return;
-    statusDiv.textContent = "Memuat FFmpeg core (butuh beberapa detik pertama kali)…";
+function findColumnIndex(headers, aliases){
+  const H = headers.map(norm);
+  for (const a of aliases){ if (H.includes(a)) return H.indexOf(a); }
+  for (const a of aliases){
+    const i = H.findIndex(h => h && h.includes(a));
+    if (i !== -1) return i;
+  }
+  return -1;
+}
 
-    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
-    });
-    ffmpegLoaded = true;
-    statusDiv.textContent = "FFmpeg siap.";
+function findMainColumnIndex(headers, col){
+  const found = headers.findIndex(h => norm(h) === norm(col));
+  if (found !== -1) return found;
+  const aliases = MAIN_COL_ALIASES[col];
+  if (!aliases) return -1;
+  return findColumnIndex(headers, aliases.map(norm));
+}
+
+/* =========================================================================
+   3) TAB CONTROLLER (TAP 1 & TAP 2)
+   ========================================================================= */
+class TabController {
+  constructor(tabId, cfg){
+    this.tabId = tabId;
+    this.cfg   = cfg;
+    this.state = {
+      wb:null, rows:[], filtered:[], baseName:"extract", sheetName:"",
+      columns: cfg.columns.slice(),
+      detailInfo: null, gtInfo: null, autoFillInfo: null
+    };
+    this.mount();
+    this.bind();
   }
 
-  // ---------- Deteksi durasi video ----------
-  function getVideoDuration(file) {
-    return new Promise((resolve, reject) => {
-      const v = document.createElement("video");
-      v.preload = "metadata";
-      v.muted = true;
-      v.onloadedmetadata = () => {
-        const dur = v.duration;
-        URL.revokeObjectURL(v.src);
-        resolve(dur);
-      };
-      v.onerror = () => {
-        URL.revokeObjectURL(v.src);
-        reject(new Error("Gagal membaca metadata video (format mungkin tidak didukung browser)."));
-      };
-      v.src = URL.createObjectURL(file);
-    });
+  el(suffix){ return document.getElementById(`${suffix}-${this.tabId}`); }
+
+  mount(){
+    const p = this.tabId, cfg = this.cfg;
+    const panel = document.createElement("div");
+    panel.className = "tab-panel" + (p === "tap1" ? "" : " hidden");
+    panel.id = `panel-${p}`;
+    const checkedBlank = cfg.defaultBlankRows ? "checked" : "";
+
+    panel.innerHTML = `
+      <section class="card">
+        <h2>1. Unggah File Excel — ${cfg.label}</h2>
+        <label class="drop" id="drop-${p}" for="file-${p}" style="margin-top:6px">
+          <div class="ico">📄</div>
+          <b>Klik untuk memilih file, atau tarik &amp; lepas di sini</b>
+          <span>File diproses sepenuhnya di browser Anda — tidak diunggah ke server.</span>
+        </label>
+        <input type="file" id="file-${p}" accept=".xlsx,.xls,.xlsm,.csv" />
+        <div id="sheetBox-${p}" class="hidden" style="margin-top:16px; display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;">
+          <div class="field" style="min-width:260px; max-width:340px; flex:0 0 auto;">
+            <label for="sheetSelect-${p}">Pilih Sheet Utama</label>
+            <select id="sheetSelect-${p}"></select>
+          </div>
+          <div class="actions" style="border:none; padding:0; margin:0; flex:1; display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:flex-end;">
+            <label class="chk"><input type="checkbox" id="chkRenumber-${p}" checked /> Nomor ulang kolom "No"</label>
+            <label class="chk"><input type="checkbox" id="chkBlank-${p}" ${checkedBlank} /> Sertakan 3 baris kosong</label>
+            <button class="btn-danger" id="btnClear-${p}" title="Hapus semua data yang sudah diunggah">🗑 Hapus Semua Data</button>
+            <button class="btn-ok" id="btnExport-${p}">⬇ Download Excel (${cfg.label})</button>
+          </div>
+        </div>
+        <div id="detailInfo-${p}" class="hidden"></div>
+      </section>
+
+      <section class="card hidden" id="filter-${p}">
+        <h2>2. Filter Data — ${cfg.label}</h2>
+        <p class="sub">Kosongkan kolom yang tidak ingin disaring.</p>
+        <div class="grid">
+          <div class="field" style="grid-column:span 2">
+            <label for="fSearch-${p}">Pencarian Bebas (semua kolom)</label>
+            <input type="text" id="fSearch-${p}" placeholder="Cth: VS-130745 / SVRMBKPG / ORD6KPGA01TS" />
+          </div>
+          <div class="field"><label for="fKode-${p}">Kode Perusahaan</label><select id="fKode-${p}"></select></div>
+          <div class="field"><label for="fSite-${p}">Site</label><select id="fSite-${p}"></select></div>
+          <div class="field"><label for="fTipe-${p}">Tipe Transaksi</label><select id="fTipe-${p}"></select></div>
+          <div class="field"><label for="fStatus-${p}">Status</label><select id="fStatus-${p}"></select></div>
+          <div class="field"><label for="fLokasi-${p}">Lokasi Tujuan</label><select id="fLokasi-${p}"></select></div>
+          <div class="field"><label for="fPart-${p}">Part</label><select id="fPart-${p}"></select></div>
+          <div class="field"><label for="fRef-${p}">Nomor Referensi</label><input type="text" id="fRef-${p}" placeholder="Cth: 1240206247" /></div>
+          <div class="field"><label for="fDari-${p}">Dibuat Pada (dari)</label><input type="date" id="fDari-${p}" /></div>
+          <div class="field"><label for="fSampai-${p}">Dibuat Pada (sampai)</label><input type="date" id="fSampai-${p}" /></div>
+        </div>
+        <div class="actions">
+          <button class="btn-ghost" id="btnReset-${p}">↺ Reset Filter</button>
+          <button class="btn-warn" id="btnDelFiltered-${p}" title="Hapus baris yang sedang tampil dari data">🗑 Hapus Baris Terfilter</button>
+        </div>
+      </section>
+
+      <section class="card hidden" id="preview-${p}">
+        <h2>3. Pratinjau Hasil — ${cfg.label}</h2>
+        <div class="stats">
+          <div class="pill">Total baris: <b id="stTotal-${p}">0</b></div>
+          <div class="pill">Setelah difilter: <b id="stFiltered-${p}">0</b></div>
+          <div class="pill danger" id="stDeleted-${p}" style="display:none">Dihapus: <b>0</b></div>
+          <div class="pill">Kolom: <b id="stCols-${p}">0</b></div>
+          <div class="pill ok" id="stDetail-${p}" style="display:none">Detail match: <b>0</b></div>
+          <div class="pill ok" id="stGT-${p}" style="display:none">Goods Transaction match: <b>0</b></div>
+        </div>
+        <div class="tablebox">
+          <table id="tbl-${p}">
+            <thead><tr id="thead-${p}"></tr></thead>
+            <tbody id="tbody-${p}"></tbody>
+          </table>
+          <div class="empty hidden" id="emptyMsg-${p}">Tidak ada baris yang cocok dengan filter.</div>
+        </div>
+        <p class="sub" id="limitNote-${p}" style="margin-top:10px"></p>
+      </section>
+    `;
+    $("tabPanels").appendChild(panel);
   }
 
-  // ---------- Event handler ----------
-  videoInput.addEventListener("change", (e) => {
-    videoFile = e.target.files[0] || null;
-    if (videoFile) {
-      const mb = (videoFile.size / 1024 / 1024).toFixed(1);
-      statusDiv.textContent = `File dipilih: ${videoFile.name} (${mb} MB)`;
-      processBtn.disabled = false;
-    } else {
-      statusDiv.textContent = "Tidak ada file.";
-      processBtn.disabled = true;
+  bind(){
+    const fileInput = this.el("file");
+    fileInput.addEventListener("change", e => {
+      const f = e.target.files[0];
+      if (f) this.loadFile(f);
+    });
+    const drop = this.el("drop");
+    ["dragenter","dragover"].forEach(ev =>
+      drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); })
+    );
+    ["dragleave","drop"].forEach(ev =>
+      drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); })
+    );
+    drop.addEventListener("drop", e => {
+      const f = e.dataTransfer.files[0];
+      if (f) this.loadFile(f);
+    });
+    this.el("sheetSelect").addEventListener("change", e => this.buildFromSheet(e.target.value));
+    ["fSearch","fKode","fSite","fTipe","fStatus","fLokasi","fPart","fRef","fDari","fSampai"]
+      .forEach(key => {
+        const el = this.el(key);
+        el.addEventListener("input",  () => this.applyFilter());
+        el.addEventListener("change", () => this.applyFilter());
+      });
+    this.el("btnReset").addEventListener("click", () => this.resetFilter());
+    this.el("btnDelFiltered").addEventListener("click", () => this.deleteFilteredRows());
+    this.el("btnClear").addEventListener("click", () => this.clearAllData());
+    this.el("btnExport").addEventListener("click", () => this.exportExcel());
+    this.el("chkRenumber").addEventListener("change", () => this.renderPreview());
+  }
+
+  loadFile(file){
+    this.state.baseName = file.name.replace(/\.(xlsx|xls|xlsm|csv)$/i,"");
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try{
+        const wb = XLSX.read(new Uint8Array(ev.target.result), { type:"array", cellDates:true });
+        this.state.wb = wb;
+        const sel = this.el("sheetSelect");
+        sel.innerHTML = "";
+        wb.SheetNames.forEach(n => {
+          const o = document.createElement("option");
+          o.value = n; o.textContent = n;
+          sel.appendChild(o);
+        });
+        let preferred = null;
+        for (const re of this.cfg.sheetPreference){
+          preferred = wb.SheetNames.find(n => re.test(n));
+          if (preferred) break;
+        }
+        sel.value = preferred || wb.SheetNames[0];
+        this.el("sheetBox").classList.remove("hidden");
+        this.buildFromSheet(sel.value);
+        toast(`[${this.cfg.label}] Berhasil membaca: ${file.name}`);
+      }catch(err){
+        console.error(err);
+        toast("Gagal membaca file: " + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  detectDetailSheet(excludeSheetName){
+    const candidates = this.state.wb.SheetNames.filter(n =>
+      n !== excludeSheetName && /detail/i.test(n)
+    );
+    if (!candidates.length) return null;
+    for (const sheetName of candidates){
+      const ws = this.state.wb.Sheets[sheetName];
+      if (!ws) continue;
+      const aoa = XLSX.utils.sheet_to_json(ws, { header:1, raw:true, defval:null, blankrows:true });
+      let headerIdx = -1;
+      for (let i = 0; i < Math.min(aoa.length, 50); i++){
+        const H = (aoa[i] || []).map(norm);
+        const hasPart = H.some(h => COL_ALIASES.part.some(a => h === a || (h && h.includes(a))));
+        const hasDesc = H.some(h => COL_ALIASES.deskripsi.some(a => h === a || (h && h.includes(a))));
+        if (hasPart || hasDesc){ headerIdx = i; break; }
+      }
+      if (headerIdx === -1) continue;
+      const headers = (aoa[headerIdx] || []).map(h => String(h ?? "").trim());
+      const idx = {
+        part:    findColumnIndex(headers, COL_ALIASES.part),
+        desc:    findColumnIndex(headers, COL_ALIASES.deskripsi),
+        um:      findColumnIndex(headers, COL_ALIASES.um),
+        doc:     findColumnIndex(headers, COL_ALIASES.nomorDokumen),
+        ref:     findColumnIndex(headers, COL_ALIASES.nomorReferensi),
+        baris:   findColumnIndex(headers, COL_ALIASES.baris),
+        no:      findColumnIndex(headers, COL_ALIASES.no)
+      };
+      if (idx.part === -1 && idx.desc === -1) continue;
+      const map = new Map();
+      const records = [];
+      for (let r = headerIdx + 1; r < aoa.length; r++){
+        const raw = aoa[r] || [];
+        if (raw.every(c => c === null || c === undefined || String(c).trim() === "")) continue;
+        const rec = {
+          raw: raw,
+          part:      idx.part   >= 0 ? String(raw[idx.part]   ?? "").trim() : "",
+          deskripsi: idx.desc   >= 0 ? String(raw[idx.desc]   ?? "").trim() : "",
+          um:        idx.um     >= 0 ? String(raw[idx.um]     ?? "").trim() : "",
+          doc:       idx.doc    >= 0 ? String(raw[idx.doc]    ?? "").trim() : "",
+          ref:       idx.ref    >= 0 ? String(raw[idx.ref]    ?? "").trim() : "",
+          baris:     idx.baris  >= 0 ? String(raw[idx.baris]  ?? "").trim() : "",
+          no:        idx.no     >= 0 ? String(raw[idx.no]     ?? "").trim() : ""
+        };
+        if (!rec.part && !rec.deskripsi) continue;
+        records.push(rec);
+        if (rec.doc && rec.baris)   map.set(`doc:${rec.doc}|baris:${rec.baris}`, rec);
+        if (rec.ref && rec.baris)   map.set(`ref:${rec.ref}|baris:${rec.baris}`, rec);
+        if (rec.part && rec.baris)  map.set(`part:${rec.part}|baris:${rec.baris}`, rec);
+        if (rec.doc)                map.set(`doc:${rec.doc}`, rec);
+        if (rec.ref)                map.set(`ref:${rec.ref}`, rec);
+        if (rec.no)                 map.set(`no:${rec.no}`, rec);
+        if (rec.part)               map.set(`part:${rec.part}`, rec);
+      }
+      if (!records.length) continue;
+      return {
+        sheetName, map, records, headerIdx, columns: headers, columnIndexes: idx,
+        matchedCols: {
+          part: idx.part >= 0 ? headers[idx.part] : null,
+          deskripsi: idx.desc >= 0 ? headers[idx.desc] : null,
+          um: idx.um >= 0 ? headers[idx.um] : null
+        }
+      };
     }
-  });
+    return null;
+  }
 
-  processBtn.addEventListener("click", async () => {
-    if (!videoFile) return;
+  lookupDetail(detail, row){
+    const doc   = String(row["Nomor Dokumen"] ?? "").trim();
+    const ref   = String(row["Nomor Referensi"] ?? "").trim();
+    const baris = String(row["Baris"] ?? "").trim();
+    const part  = String(row["Part"] ?? "").trim();
+    const no    = String(row["No"] ?? "").trim();
+    if (doc && baris)   { const m = detail.map.get(`doc:${doc}|baris:${baris}`); if (m) return m; }
+    if (ref && baris)   { const m = detail.map.get(`ref:${ref}|baris:${baris}`); if (m) return m; }
+    if (part && baris)  { const m = detail.map.get(`part:${part}|baris:${baris}`); if (m) return m; }
+    if (doc)            { const m = detail.map.get(`doc:${doc}`); if (m) return m; }
+    if (ref)            { const m = detail.map.get(`ref:${ref}`); if (m) return m; }
+    if (no)             { const m = detail.map.get(`no:${no}`);  if (m) return m; }
+    if (part)           { const m = detail.map.get(`part:${part}`); if (m) return m; }
+    return null;
+  }
 
-    clipsContainer.innerHTML = "";
-    processBtn.disabled = true;
+  detectGoodsTransactionSheet(excludeSheetName){
+    const patterns = [/goods\s*transaction/i, /goods/i, /transaksi\s*barang/i];
+    let candidates = [];
+    for (const re of patterns){
+      candidates = this.state.wb.SheetNames.filter(n => n !== excludeSheetName && re.test(n));
+      if (candidates.length) break;
+    }
+    if (!candidates.length) return null;
+    for (const sheetName of candidates){
+      const ws = this.state.wb.Sheets[sheetName];
+      if (!ws) continue;
+      const aoa = XLSX.utils.sheet_to_json(ws, { header:1, raw:true, defval:null, blankrows:true });
+      let headerIdx = -1;
+      for (let i = 0; i < Math.min(aoa.length, 60); i++){
+        const H = (aoa[i] || []).map(norm);
+        const hasRef = H.some(h => GT_ALIASES.ref.some(a => h === a));
+        const hasLok = H.some(h => GT_ALIASES.lokasi.some(a => h === a));
+        const hasSta = H.some(h => GT_ALIASES.status.some(a => h === a));
+        if (hasRef || hasLok || hasSta){ headerIdx = i; break; }
+      }
+      if (headerIdx === -1) continue;
+      const headers = (aoa[headerIdx] || []).map(h => String(h ?? "").trim());
+      const idx = {
+        ref:    findColumnIndex(headers, GT_ALIASES.ref),
+        lokasi: findColumnIndex(headers, GT_ALIASES.lokasi),
+        status: findColumnIndex(headers, GT_ALIASES.status),
+        diupdateTanggal: findColumnIndex(headers, GT_ALIASES.diupdateTanggal),
+        doc:    findColumnIndex(headers, COL_ALIASES.nomorDokumen),
+        baris:  findColumnIndex(headers, COL_ALIASES.baris),
+        part:   findColumnIndex(headers, COL_ALIASES.part)
+      };
+      if (idx.ref === -1 && idx.lokasi === -1 && idx.status === -1) continue;
+      const map = new Map();
+      const records = [];
+      for (let r = headerIdx + 1; r < aoa.length; r++){
+        const raw = aoa[r] || [];
+        if (raw.every(c => c === null || c === undefined || String(c).trim() === "")) continue;
+        const rec = {
+          raw,
+          ref:    idx.ref    >= 0 ? String(raw[idx.ref]    ?? "").trim() : "",
+          lokasi: idx.lokasi >= 0 ? String(raw[idx.lokasi] ?? "").trim() : "",
+          status: idx.status >= 0 ? String(raw[idx.status] ?? "").trim() : "",
+          diupdateTanggal: idx.diupdateTanggal >= 0 ? raw[idx.diupdateTanggal] : "",
+          doc:    idx.doc    >= 0 ? String(raw[idx.doc]    ?? "").trim() : "",
+          baris:  idx.baris  >= 0 ? String(raw[idx.baris]  ?? "").trim() : "",
+          part:   idx.part   >= 0 ? String(raw[idx.part]   ?? "").trim() : ""
+        };
+        if (!rec.ref && !rec.lokasi && !rec.status) continue;
+        records.push(rec);
+        if (rec.doc && rec.baris)  map.set(`doc:${rec.doc}|baris:${rec.baris}`, rec);
+        if (rec.part && rec.baris) map.set(`part:${rec.part}|baris:${rec.baris}`, rec);
+        if (rec.doc)               map.set(`doc:${rec.doc}`, rec);
+        if (rec.part)              map.set(`part:${rec.part}`, rec);
+      }
+      if (!records.length) continue;
+      return {
+        sheetName, map, records, headerIdx, columns: headers, columnIndexes: idx,
+        matchedCols: {
+          ref:    idx.ref    >= 0 ? headers[idx.ref]    : null,
+          lokasi: idx.lokasi >= 0 ? headers[idx.lokasi] : null,
+          status: idx.status >= 0 ? headers[idx.status] : null,
+          diupdateTanggal: idx.diupdateTanggal >= 0 ? headers[idx.diupdateTanggal] : null
+        }
+      };
+    }
+    return null;
+  }
 
-    const segment = parseInt(durationInput.value, 10);
-    if (!segment || segment < 1) {
-      statusDiv.textContent = "❌ Durasi harus minimal 1 detik.";
-      processBtn.disabled = false;
+  lookupGoodsTransaction(gt, row){
+    const doc   = String(row["Nomor Dokumen"] ?? "").trim();
+    const baris = String(row["Baris"] ?? "").trim();
+    const part  = String(row["Part"] ?? "").trim();
+    if (doc && baris)  { const m = gt.map.get(`doc:${doc}|baris:${baris}`);   if (m) return m; }
+    if (part && baris) { const m = gt.map.get(`part:${part}|baris:${baris}`); if (m) return m; }
+    if (doc)           { const m = gt.map.get(`doc:${doc}`);                  if (m) return m; }
+    if (part)          { const m = gt.map.get(`part:${part}`);                if (m) return m; }
+    return null;
+  }
+
+  autoFillChangedFromCreated(rows){
+    let filledOleh = 0, filledPada = 0;
+    rows.forEach(row => {
+      const dibuatOleh = row["Dibuat Oleh"];
+      const curOleh    = row["Diubah Oleh"];
+      if ((curOleh === "" || curOleh === null || curOleh === undefined) &&
+          dibuatOleh !== "" && dibuatOleh !== null && dibuatOleh !== undefined){
+        row["Diubah Oleh"] = dibuatOleh; filledOleh++;
+      }
+      const dibuatPada = row["Dibuat Pada"];
+      const curPada    = row["Diubah Pada"];
+      if ((curPada === "" || curPada === null || curPada === undefined) &&
+          dibuatPada !== "" && dibuatPada !== null && dibuatPada !== undefined){
+        row["Diubah Pada"] = dibuatPada; filledPada++;
+      }
+    });
+    return { filledOleh, filledPada };
+  }
+
+  buildFromSheet(sheetName){
+    const ws = this.state.wb.Sheets[sheetName];
+    if (!ws) return;
+    this.state.sheetName = sheetName;
+    const aoa = XLSX.utils.sheet_to_json(ws, { header:1, raw:true, defval:null, blankrows:true });
+    let headerIdx = -1;
+    for (let i = 0; i < Math.min(aoa.length, 100); i++){
+      const r = (aoa[i] || []).map(norm);
+      if (r.includes("kode perusahaan") && r.includes("nomor dokumen")){ headerIdx = i; break; }
+    }
+    if (headerIdx === -1){
+      let best = -1, bestScore = 0;
+      for (let i = 0; i < Math.min(aoa.length, 100); i++){
+        const r = (aoa[i] || []).map(norm);
+        const score = this.cfg.columns.filter(c => r.includes(norm(c))).length;
+        if (score > bestScore){ bestScore = score; best = i; }
+      }
+      if (bestScore >= 5) headerIdx = best;
+    }
+    if (headerIdx === -1){
+      toast("Header tidak dikenali. Pastikan file memakai template yang sama.");
       return;
     }
-
-    try {
-      await loadFFmpeg();
-
-      const ext = (videoFile.name.split(".").pop() || "mp4").toLowerCase();
-      const inputName = `input.${ext}`;
-      const mime = videoFile.type || `video/${ext === "mov" ? "quicktime" : ext}`;
-
-      statusDiv.textContent = "Menulis file ke sistem file virtual…";
-      await ffmpeg.writeFile(inputName, await fetchFile(videoFile));
-
-      statusDiv.textContent = "Mendeteksi durasi video…";
-      const total = await getVideoDuration(videoFile);
-      if (!total || !isFinite(total)) throw new Error("Durasi video tidak valid.");
-
-      const totalSegments = Math.ceil(total / segment);
-      statusDiv.textContent = `Total durasi ${total.toFixed(1)} dtk → ${totalSegments} klip.`;
-
-      for (let i = 0; i < totalSegments; i++) {
-        const start = i * segment;
-        const remaining = Math.min(segment, total - start);
-        if (remaining < 0.2) break; // terlalu pendek, lewati
-
-        const outputName = `clip_${String(i + 1).padStart(3, "0")}.${ext}`;
-        statusDiv.textContent = `Memotong klip ${i + 1}/${totalSegments} (mulai ${start.toFixed(1)} dtk)…`;
-
-        // -ss sebelum -i = cepat (keyframe-aligned)
-        // -avoid_negative_ts make_zero = hindari timestamp negatif
-        await ffmpeg.exec([
-          "-ss", start.toFixed(3),
-          "-i", inputName,
-          "-t", remaining.toFixed(3),
-          "-c", "copy",
-          "-avoid_negative_ts", "make_zero",
-          "-reset_timestamps", "1",
-          outputName,
-        ]);
-
-        const data = await ffmpeg.readFile(outputName);
-        if (!data || data.length === 0) {
-          console.warn(`Klip ${i + 1} kosong, dilewati.`);
-          await ffmpeg.deleteFile(outputName).catch(() => {});
-          continue;
+    const headers = (aoa[headerIdx] || []).map(h => String(h ?? "").trim());
+    const detail = this.detectDetailSheet(sheetName);
+    const excludedSet = new Set((this.cfg.excludedDetailColumns || []).map(norm));
+    const extraDetailCols = [];
+    if (detail){
+      detail.columns.forEach(c => {
+        if (!c) return;
+        const key = norm(c);
+        if (excludedSet.has(key)) return;
+        if (this.cfg.columns.some(m => norm(m) === key)) return;
+        if (extraDetailCols.some(x => norm(x) === key)) return;
+        extraDetailCols.push(c);
+      });
+    }
+    this.state.columns = [...this.cfg.columns, ...extraDetailCols];
+    const colIdx = this.cfg.columns.map(col => findMainColumnIndex(headers, col));
+    const rows = [];
+    for (let r = headerIdx + 1; r < aoa.length; r++){
+      const raw = aoa[r] || [];
+      const isEmpty = raw.every(c => c === null || c === undefined || String(c).trim() === "");
+      if (isEmpty) continue;
+      const obj = {};
+      this.cfg.columns.forEach((col, i) => {
+        const src = colIdx[i];
+        let v = src >= 0 ? raw[src] : null;
+        if (DATE_COLS.has(col)){ obj[col] = formatDateForTab(v, this.cfg.dateFormat); return; }
+        if (v === null || v === undefined){ obj[col] = ""; return; }
+        if (v instanceof Date){ obj[col] = formatDateForTab(v, this.cfg.dateFormat); return; }
+        if (NUMERIC_COLS.has(col) && col !== "No"){
+          if (typeof v === "number"){ obj[col] = v; return; }
+          const s = String(v).trim();
+          if (s !== "" && !isNaN(Number(s))){ obj[col] = Number(s); return; }
+          obj[col] = s; return;
         }
+        if (TEXT_COLS.has(col)){ obj[col] = String(v).trim(); return; }
+        obj[col] = typeof v === "number" ? v : String(v).trim();
+      });
+      extraDetailCols.forEach(col => { obj[col] = ""; });
+      if (!obj["Nomor Dokumen"] && !obj["Part"] && !obj["Nomor Referensi"]) continue;
+      rows.push(obj);
+    }
 
-        const blob = new Blob([data], { type: mime });
-        const url = URL.createObjectURL(blob);
+    if (detail){
+      const dov = this.cfg.detailOverrides || {};
+      let matched = 0, filledPart = 0, filledDesc = 0, filledExtra = 0, filledSatuan = 0;
+      const umIdx = detail.columnIndexes.um;
+      rows.forEach(row => {
+        const rec = this.lookupDetail(detail, row);
+        if (!rec) return;
+        matched++;
+        if (!row["Part"] && rec.part){ row["Part"] = rec.part; filledPart++; }
+        if (!row["Deskripsi"] && rec.deskripsi){ row["Deskripsi"] = rec.deskripsi; filledDesc++; }
+        if (dov.satuanFromUM && umIdx >= 0){
+          const umVal = rec.raw[umIdx];
+          if (umVal !== null && umVal !== undefined && String(umVal).trim() !== ""){
+            row["Satuan"] = String(umVal).trim();
+            filledSatuan++;
+          }
+        }
+        detail.columns.forEach((colName, ci) => {
+          if (!colName) return;
+          const v = rec.raw[ci];
+          if (v === null || v === undefined || String(v).trim() === "") return;
+          const target = this.state.columns.find(c => norm(c) === norm(colName));
+          if (!target) return;
+          const cur = row[target];
+          if (cur === "" || cur === undefined || cur === null){
+            row[target] = typeof v === "number" ? v : String(v).trim();
+            if (extraDetailCols.some(x => norm(x) === norm(target))) filledExtra++;
+          }
+        });
+      });
+      this.state.detailInfo = {
+        sheetName: detail.sheetName, count: detail.records.length,
+        matched, filledPart, filledDesc, filledExtra, filledSatuan,
+        partCol: detail.matchedCols.part,
+        descCol: detail.matchedCols.deskripsi,
+        umCol: detail.matchedCols.um,
+        extraCols: extraDetailCols
+      };
+    } else {
+      this.state.detailInfo = null;
+    }
 
-        const el = document.createElement("div");
-        el.className = "clip-item";
-        el.innerHTML = `
-          <p><strong>Klip ${i + 1}</strong> — mulai ${start.toFixed(1)} dtk, durasi ±${remaining.toFixed(1)} dtk</p>
-          <a href="${url}" download="${outputName}">⬇ Unduh ${outputName}</a>
-        `;
-        clipsContainer.appendChild(el);
+    const gt = this.detectGoodsTransactionSheet(sheetName);
+    if (gt){
+      const ov = this.cfg.gtOverrides || {};
+      let matched = 0, filledRef = 0, filledLokasi = 0;
+      let filledStatus = 0, filledDibuat = 0, filledKonfirmasi = 0;
+      rows.forEach(row => {
+        const rec = this.lookupGoodsTransaction(gt, row);
+        if (!rec) return;
+        matched++;
+        if (!row["Nomor Referensi"] && rec.ref){ row["Nomor Referensi"] = rec.ref; filledRef++; }
+        if (!row["Lokasi Tujuan"] && rec.lokasi){ row["Lokasi Tujuan"] = rec.lokasi; filledLokasi++; }
+        if (ov.statusFromGT && rec.status){ row["Status"] = rec.status; filledStatus++; }
+        if (ov.dateFromGT){
+          const tgl = formatDateOnlyValue(rec.diupdateTanggal, this.cfg.dateFormat);
+          if (tgl){
+            if (this.cfg.columns.includes("Dibuat Pada")){
+              row["Dibuat Pada"] = tgl; filledDibuat++;
+            }
+            if (this.cfg.columns.includes("Dikonfirmasi Pada")){
+              row["Dikonfirmasi Pada"] = tgl; filledKonfirmasi++;
+            }
+          }
+        }
+      });
+      this.state.gtInfo = {
+        sheetName: gt.sheetName, count: gt.records.length,
+        matched, filledRef, filledLokasi,
+        filledStatus, filledDibuat, filledKonfirmasi,
+        refCol: gt.matchedCols.ref,
+        lokasiCol: gt.matchedCols.lokasi,
+        statusCol: gt.matchedCols.status,
+        tanggalCol: gt.matchedCols.diupdateTanggal
+      };
+    } else {
+      this.state.gtInfo = null;
+    }
 
-        await ffmpeg.deleteFile(outputName).catch(() => {});
+    this.state.autoFillInfo = this.autoFillChangedFromCreated(rows);
+    this.state.rows = rows;
+    this.renderDetailInfo();
+    this.buildFilterOptions();
+    this.applyFilter();
+    this.el("preview").classList.remove("hidden");
+  }
+
+  renderDetailInfo(){
+    const box = this.el("detailInfo");
+    const info = this.state.detailInfo;
+    const gt   = this.state.gtInfo;
+    const af   = this.state.autoFillInfo;
+    const ov   = this.cfg.gtOverrides || {};
+    const dov  = this.cfg.detailOverrides || {};
+    box.innerHTML = "";
+    let html = "";
+
+    if (!info){
+      html += `
+        <div class="info warn">
+          <span class="ico">⚠️</span>
+          <div><b>Sheet Detail tidak ditemukan.</b><br>Kolom <b>Part</b> dan <b>Deskripsi</b> hanya diambil dari sheet utama.</div>
+        </div>`;
+    } else {
+      const extraHtml = info.extraCols && info.extraCols.length
+        ? `<br>Kolom tambahan dari Detail: <code>${info.extraCols.map(escapeHtml).join("</code>, <code>")}</code>.`
+        : "";
+      const excluded = (this.cfg.excludedDetailColumns || []);
+      const excludedHtml = excluded.length
+        ? `<br><span style="color:#b45309"><b>Dikecualikan:</b> <code>${excluded.map(escapeHtml).join("</code>, <code>")}</code>.</span>`
+        : "";
+      const satuanHtml = (dov.satuanFromUM && info.filledSatuan !== undefined)
+        ? `<br>Kolom <b>Satuan</b> diambil dari <code>${escapeHtml(info.umCol ?? "-")}</code> — <b>${info.filledSatuan.toLocaleString("id-ID")}</b> baris.`
+        : "";
+      html += `
+        <div class="info ok">
+          <span class="ico">✅</span>
+          <div>
+            <b>Sheet Detail terdeteksi: <code>${escapeHtml(info.sheetName)}</code></b>
+            — ${info.count.toLocaleString("id-ID")} baris referensi.
+            ${satuanHtml}${extraHtml}${excludedHtml}
+          </div>
+        </div>`;
+    }
+
+    if (!gt){
+      html += `
+        <div class="info warn">
+          <span class="ico">⚠️</span>
+          <div><b>Sheet Goods Transaction tidak ditemukan.</b></div>
+        </div>`;
+    } else {
+      const gtExtra = [];
+      if (ov.statusFromGT && gt.statusCol){
+        gtExtra.push(`Kolom <b>Status</b> dari <code>${escapeHtml(gt.statusCol)}</code>.`);
       }
+      if (ov.dateFromGT && gt.tanggalCol){
+        gtExtra.push(`Kolom <b>Dibuat Pada</b> &amp; <b>Dikonfirmasi Pada</b> dari <code>${escapeHtml(gt.tanggalCol)}</code>.`);
+      }
+      html += `
+        <div class="info ok">
+          <span class="ico">✅</span>
+          <div>
+            <b>Sheet Goods Transaction terdeteksi: <code>${escapeHtml(gt.sheetName)}</code></b>
+            — ${gt.count.toLocaleString("id-ID")} baris referensi.
+            ${gtExtra.length ? "<br>" + gtExtra.join("<br>") : ""}
+          </div>
+        </div>`;
+    }
 
-      await ffmpeg.deleteFile(inputName).catch(() => {});
-      statusDiv.textContent = `✅ Selesai! ${totalSegments} klip telah dibuat.`;
+    if (af && (af.filledOleh || af.filledPada)){
+      html += `
+        <div class="info ok" style="background:#eff6ff;border-color:#bfdbfe;color:#1e40af">
+          <span class="ico">🔁</span>
+          <div><b>Auto-fill kolom perubahan</b> aktif.</div>
+        </div>`;
+    }
+    box.innerHTML = html;
 
-    } catch (err) {
-      console.error(err);
-      statusDiv.textContent = `❌ Error: ${err.message}`;
-    } finally {
-      processBtn.disabled = false;
+    const pill = this.el("stDetail");
+    if (info){ pill.style.display = ""; pill.querySelector("b").textContent = info.matched.toLocaleString("id-ID"); }
+    else { pill.style.display = "none"; }
+    const pillGT = this.el("stGT");
+    if (gt){ pillGT.style.display = ""; pillGT.querySelector("b").textContent = gt.matched.toLocaleString("id-ID"); }
+    else { pillGT.style.display = "none"; }
+  }
+
+  buildFilterOptions(){
+    const map = {
+      fKode:"Kode Perusahaan", fSite:"Site", fTipe:"Tipe Transaksi",
+      fStatus:"Status", fLokasi:"Lokasi Tujuan", fPart:"Part"
+    };
+    Object.entries(map).forEach(([key, col]) => {
+      const sel = this.el(key);
+      const current = sel.value;
+      const vals = [...new Set(
+        this.state.rows.map(r => String(r[col] ?? "").trim()).filter(Boolean)
+      )].sort();
+      sel.innerHTML = `<option value="">— Semua —</option>` +
+        vals.map(v => `<option value="${escapeAttr(v)}">${escapeHtml(v)}</option>`).join("");
+      if (vals.includes(current)) sel.value = current;
+    });
+  }
+
+  applyFilter(){
+    const q      = norm(this.el("fSearch").value);
+    const kode   = this.el("fKode").value;
+    const site   = this.el("fSite").value;
+    const tipe   = this.el("fTipe").value;
+    const status = this.el("fStatus").value;
+    const lokasi = this.el("fLokasi").value;
+    const part   = this.el("fPart").value;
+    const ref    = norm(this.el("fRef").value);
+    const dari   = this.el("fDari").value;
+    const sampai = this.el("fSampai").value;
+    this.state.filtered = this.state.rows.filter(r => {
+      if (kode   && String(r["Kode Perusahaan"]) !== kode)   return false;
+      if (site   && String(r["Site"])            !== site)   return false;
+      if (tipe   && String(r["Tipe Transaksi"])  !== tipe)   return false;
+      if (status && String(r["Status"])          !== status) return false;
+      if (lokasi && String(r["Lokasi Tujuan"])   !== lokasi) return false;
+      if (part   && String(r["Part"])            !== part)   return false;
+      if (ref    && !norm(r["Nomor Referensi"]).includes(ref)) return false;
+      if (dari || sampai){
+        const d = toDateOnly(r["Dibuat Pada"]);
+        if (!d) return false;
+        if (dari   && d < dari)   return false;
+        if (sampai && d > sampai) return false;
+      }
+      if (q){
+        const hay = this.state.columns.map(c => norm(r[c])).join(" | ");
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    this.renderPreview();
+  }
+
+  resetFilter(){
+    ["fSearch","fRef","fDari","fSampai"].forEach(k => this.el(k).value = "");
+    ["fKode","fSite","fTipe","fStatus","fLokasi","fPart"].forEach(k => this.el(k).value = "");
+    this.applyFilter();
+  }
+
+  async deleteFilteredRows(){
+    if (!this.state.rows.length){ toast("Belum ada data yang dimuat."); return; }
+    if (!this.state.filtered.length){ toast("Tidak ada baris terfilter untuk dihapus."); return; }
+    const jumlah = this.state.filtered.length;
+    const total  = this.state.rows.length;
+    const pesan  = (jumlah === total)
+      ? `Semua ${jumlah.toLocaleString("id-ID")} baris akan dihapus dan data akan menjadi kosong. Lanjutkan?`
+      : `Hapus ${jumlah.toLocaleString("id-ID")} baris yang sedang tampil dari total ${total.toLocaleString("id-ID")} baris?`;
+    const ok = await confirmDialog("Hapus Baris Terfilter", pesan, "Ya, Hapus");
+    if (!ok) return;
+    const hapus = new Set(this.state.filtered);
+    this.state.rows = this.state.rows.filter(r => !hapus.has(r));
+    this.state.deletedCount = (this.state.deletedCount || 0) + jumlah;
+    this.buildFilterOptions();
+    this.applyFilter();
+    const pillDel = this.el("stDeleted");
+    if (pillDel){ pillDel.style.display = ""; pillDel.querySelector("b").textContent = this.state.deletedCount.toLocaleString("id-ID"); }
+    toast(`[${this.cfg.label}] ${jumlah.toLocaleString("id-ID")} baris dihapus. Sisa ${this.state.rows.length.toLocaleString("id-ID")} baris.`);
+  }
+
+  async clearAllData(){
+    if (!this.state.wb && !this.state.rows.length){ toast("Belum ada data untuk dihapus."); return; }
+    const ok = await confirmDialog(
+      "Hapus Semua Data",
+      "Semua data yang sudah diunggah, hasil filter, dan pengaturan saat ini akan dihapus. Tindakan ini tidak dapat dibatalkan. Lanjutkan?",
+      "Ya, Hapus Semua"
+    );
+    if (!ok) return;
+    this.state.wb = null; this.state.rows = []; this.state.filtered = [];
+    this.state.detailInfo = null; this.state.gtInfo = null; this.state.autoFillInfo = null;
+    this.state.sheetName = ""; this.state.baseName = "extract"; this.state.deletedCount = 0;
+    this.el("file").value = "";
+    this.el("sheetSelect").innerHTML = "";
+    this.el("sheetBox").classList.add("hidden");
+    const box = this.el("detailInfo"); box.innerHTML = ""; box.classList.add("hidden");
+    this.resetFilter();
+    this.el("filter").classList.add("hidden");
+    this.el("preview").classList.add("hidden");
+    this.el("thead").innerHTML = "";
+    this.el("tbody").innerHTML = "";
+    this.el("emptyMsg").classList.add("hidden");
+    this.el("limitNote").textContent = "";
+    this.el("stTotal").textContent    = "0";
+    this.el("stFiltered").textContent = "0";
+    this.el("stCols").textContent     = "0";
+    this.el("stDetail").style.display = "none";
+    this.el("stGT").style.display     = "none";
+    const pillDel = this.el("stDeleted");
+    if (pillDel) pillDel.style.display = "none";
+    toast(`[${this.cfg.label}] Semua data berhasil dihapus.`);
+  }
+
+  renderPreview(){
+    const thead = this.el("thead");
+    const tbody = this.el("tbody");
+    const cols = this.state.columns;
+    thead.innerHTML = cols.map(c =>
+      `<th class="${NUMERIC_COLS.has(c) ? "num" : ""}">${escapeHtml(c)}</th>`
+    ).join("");
+    const renumber = this.el("chkRenumber").checked;
+    const rows = this.state.filtered;
+    const shown = rows.slice(0, MAX_PREVIEW_ROWS);
+    tbody.innerHTML = shown.map((r, i) => {
+      const cells = cols.map(col => {
+        let v;
+        if (col === "No") v = renumber ? (i + 1) : (r["No"] ?? "");
+        else v = r[col];
+        const isNum = NUMERIC_COLS.has(col);
+        const display = (v === "" || v === null || v === undefined) ? "" : v;
+        return `<td class="${isNum ? "num" : ""}">${escapeHtml(display)}</td>`;
+      }).join("");
+      return `<tr>${cells}</tr>`;
+    }).join("");
+    this.el("emptyMsg").classList.toggle("hidden", rows.length > 0);
+    this.el("limitNote").textContent = rows.length > MAX_PREVIEW_ROWS
+      ? `Pratinjau dibatasi ${MAX_PREVIEW_ROWS} baris pertama. Semua ${rows.length} baris tetap akan diekspor.`
+      : "";
+    this.el("stTotal").textContent    = this.state.rows.length.toLocaleString("id-ID");
+    this.el("stFiltered").textContent = rows.length.toLocaleString("id-ID");
+    this.el("stCols").textContent     = cols.length;
+  }
+
+  exportExcel(){
+    if (!this.state.rows.length){ toast("Belum ada data untuk diekspor."); return; }
+    if (!this.state.filtered.length){ toast("Tidak ada baris yang cocok untuk diekspor."); return; }
+    const cols      = this.state.columns;
+    const renumber  = this.el("chkRenumber").checked;
+    const withBlank = this.el("chkBlank").checked;
+    const aoa = [];
+    if (withBlank) aoa.push([], [], []);
+    aoa.push(cols.slice());
+    this.state.filtered.forEach((r, i) => {
+      const row = cols.map(col => {
+        if (col === "No"){
+          if (renumber) return i + 1;
+          const orig = r["No"];
+          if (orig === null || orig === undefined || orig === "") return null;
+          if (typeof orig === "number") return orig;
+          const n = Number(orig);
+          return isNaN(n) ? String(orig) : n;
+        }
+        const v = r[col];
+        if (v === null || v === undefined || v === "") return null;
+        if (NUMERIC_COLS.has(col)){
+          if (typeof v === "number") return v;
+          const s = String(v).trim();
+          if (s !== "" && !isNaN(Number(s))) return Number(s);
+          return s;
+        }
+        if (TEXT_COLS.has(col)) return String(v);
+        if (DATE_COLS.has(col)) return String(v);
+        return v;
+      });
+      aoa.push(row);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws["!cols"] = cols.map(c => ({ wch: Math.min(45, Math.max(11, c.length + 4)) }));
+    if (withBlank){ ws["!freeze"] = { xSplit:0, ySplit:4 }; }
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, this.cfg.label);
+    const fname = `${this.state.baseName}_${this.cfg.exportTag}_${todayStamp()}.xlsx`;
+    XLSX.writeFile(wb, fname);
+    toast(`[${this.cfg.label}] Berhasil diunduh: ${fname}`);
+  }
+}
+
+/* =========================================================================
+   4) TAP 3 — PANEL CETAK LABEL (daftar tautan)
+   ========================================================================= */
+function mountSettingsPanel(tabId, cfg){
+  const panel = document.createElement("div");
+  panel.className = "tab-panel hidden";
+  panel.id = `panel-${tabId}`;
+
+  const cardsHtml = (cfg.links || []).map(link => `
+    <a class="link-card"
+       href="${escapeAttr(link.url)}"
+       target="_blank"
+       rel="noopener noreferrer"
+       title="Buka di tab baru">
+      <div class="link-card-icon">${escapeHtml(link.icon || "🔗")}</div>
+      <div class="link-card-body">
+        <div class="link-card-title">${escapeHtml(link.title)}</div>
+        <div class="link-card-desc">${escapeHtml(link.desc || "")}</div>
+        <div class="link-card-url">${escapeHtml(link.url)}</div>
+      </div>
+      <div class="link-card-arrow">↗</div>
+    </a>
+  `).join("");
+
+  panel.innerHTML = `
+    <section class="card">
+      <h2>Cetak Label — Tautan Cepat</h2>
+      <p class="sub">
+        Akses cepat ke aplikasi pendukung pencetakan label.
+        Semua tautan akan dibuka di <b>tab baru</b>.
+      </p>
+      <div class="link-grid">${cardsHtml}</div>
+
+      <div class="settings-note">
+        <span class="ico">ℹ️</span>
+        <div>
+          Halaman ini tidak memproses data Excel. Gunakan tab <b>TAP 1</b> atau <b>TAP 2</b>
+          untuk mengunggah, memfilter, dan mengekspor file penerimaan transaksi.
+        </div>
+      </div>
+    </section>
+  `;
+
+  $("tabPanels").appendChild(panel);
+}
+
+/* =========================================================================
+   5) INISIALISASI
+   ========================================================================= */
+const CONTROLLERS = {};
+
+(function init(){
+  const tabsBar = $("tabsBar");
+
+  Object.entries(TAB_CONFIGS).forEach(([id, cfg]) => {
+    const t = document.createElement("div");
+    t.className = "tab" + (id === "tap1" ? " active" : "");
+    t.dataset.tab = id;
+    t.innerHTML = `${cfg.label}<span class="badge">${cfg.badge}</span>`;
+    t.addEventListener("click", () => switchTab(id));
+    tabsBar.appendChild(t);
+  });
+
+  Object.entries(TAB_CONFIGS).forEach(([id, cfg]) => {
+    if (cfg.type === "settings"){
+      mountSettingsPanel(id, cfg);
+    } else {
+      CONTROLLERS[id] = new TabController(id, cfg);
     }
   });
-
-  // Mulai memuat FFmpeg begitu halaman siap
-  loadFFmpeg().catch((err) => {
-    console.error(err);
-    statusDiv.textContent = `❌ Gagal memuat FFmpeg: ${err.message}`;
-  });
 })();
+
+function switchTab(tabId){
+  document.querySelectorAll(".tab").forEach(t =>
+    t.classList.toggle("active", t.dataset.tab === tabId)
+  );
+  document.querySelectorAll(".tab-panel").forEach(p =>
+    p.classList.toggle("hidden", p.id !== `panel-${tabId}`)
+  );
+}
 </script>
 </body>
 </html>
