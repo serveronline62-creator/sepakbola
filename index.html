@@ -5,401 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Streaming Sepak Bola</title>
     <style>
-        /* Reset & Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        /* Reset & Base */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f9f9f9; color: #0f0f0f; }
 
-        body {
-            background-color: #f9f9f9;
-            color: #0f0f0f;
-        }
-
-        /* Navbar Top */
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            background-color: #ffffff;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .nav-left .logo {
-            color: #ff0000;
-            font-size: 24px;
-        }
-
-        .nav-center {
-            display: flex;
-            align-items: center;
-            width: 40%;
-        }
-
-        .search-bar {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ccc;
-            border-radius: 20px 0 0 20px;
-            outline: none;
-            font-size: 16px;
-        }
-
-        .search-btn {
-            padding: 10px 20px;
-            border: 1px solid #ccc;
-            border-left: none;
-            border-radius: 0 20px 20px 0;
-            background-color: #f8f8f8;
-            cursor: pointer;
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .btn-upload {
-            padding: 8px 15px;
-            border: none;
-            background-color: #f0f0f0;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 14px;
-            transition: background-color 0.2s;
-        }
-
-        .btn-upload:hover {
-            background-color: #e0e0e0;
-        }
-
-        .profile-icon {
-            width: 35px;
-            height: 35px;
-            background-color: #0056b3;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        /* Navbar */
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #ffffff; position: sticky; top: 0; z-index: 100; }
+        .nav-left { display: flex; align-items: center; gap: 15px; font-size: 20px; font-weight: bold; }
+        .nav-left .logo { color: #ff0000; font-size: 24px; }
+        .nav-center { display: flex; align-items: center; width: 40%; }
+        .search-bar { width: 100%; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px 0 0 20px; outline: none; font-size: 16px; }
+        .search-btn { padding: 10px 20px; border: 1px solid #ccc; border-left: none; border-radius: 0 20px 20px 0; background-color: #f8f8f8; cursor: pointer; }
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        .btn-upload { padding: 8px 15px; border: none; background-color: #f0f0f0; border-radius: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 14px; transition: background-color 0.2s; }
+        .btn-upload:hover { background-color: #e0e0e0; }
+        .profile-icon { width: 35px; height: 35px; background-color: #0056b3; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; cursor: pointer; }
 
         /* Main Layout */
-        .main-container {
-            display: flex;
-            gap: 24px;
-            padding: 24px;
-            max-width: 1600px;
-            margin: 0 auto;
-        }
+        .main-container { display: flex; gap: 24px; padding: 24px; max-width: 1600px; margin: 0 auto; }
+        .video-section { flex: 1; min-width: 0; }
 
-        /* Video Section (Left) */
-        .video-section {
-            flex: 1;
-            min-width: 0;
-        }
-
+        /* VIDEO PLAYER */
         .video-player-container {
             position: relative;
             width: 100%;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            padding-top: 56.25%;
             background-color: #000;
             border-radius: 12px;
             overflow: hidden;
+            margin: 0 auto;
+            transition: padding-top 0.35s ease, max-width 0.35s ease;
+        }
+        .video-player-container[data-ratio="9:16"] {
+            padding-top: 177.7778%;
+            max-width: min(100%, 47.5vh);
+        }
+        .video-player-container[data-ratio="16:9"] {
+            padding-top: 56.25%;
+        }
+        .video-player-container[data-ratio="original"] {
+            max-width: 100%;
         }
 
         .video-background, #mainVideo {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: contain; 
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: contain;
             background-color: #000;
         }
 
-        .video-background {
-            object-fit: cover; 
-        }
-
-        /* Overlay Skor */
-        .scoreboard {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            display: flex;
-            border-radius: 4px;
-            overflow: hidden;
-            font-size: 14px;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            z-index: 10; 
-            pointer-events: none; 
-        }
-
-        .score-team {
-            background-color: #cc0000;
-            color: white;
-            padding: 5px 10px;
-            display: flex;
-            align-items: center;
-        }
-
-        .score-team span {
-            margin: 0 5px;
-        }
-
-        .score-time {
-            background-color: #222;
-            color: white;
-            padding: 5px 10px;
-            display: flex;
-            align-items: center;
-            min-width: 60px; 
-            justify-content: center;
-        }
+        /* Scoreboard */
+        .scoreboard { position: absolute; top: 15px; left: 15px; display: flex; border-radius: 4px; overflow: hidden; font-size: 14px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.5); z-index: 10; pointer-events: none; max-width: calc(100% - 30px); flex-wrap: wrap; }
+        .score-team { background-color: #cc0000; color: white; padding: 5px 10px; display: flex; align-items: center; flex-wrap: wrap; }
+        .score-team span { margin: 0 5px; }
+        .score-time { background-color: #222; color: white; padding: 5px 10px; display: flex; align-items: center; min-width: 60px; justify-content: center; }
 
         /* Overlay Logo */
-        .overlay-logos {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            display: flex;
-            gap: 5px;
-            z-index: 10;
-            pointer-events: none;
-        }
-
-        .logo-circle {
-            width: 30px;
-            height: 30px;
-            background-color: rgba(255,255,255,0.8);
-            border-radius: 50%;
-            border: 1px solid #ccc;
-        }
+        .overlay-logos { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+        .overlay-logos .logo-draggable { position: absolute; pointer-events: auto; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45)); transition: filter 0.15s; }
+        .overlay-logos .logo-draggable:hover { filter: drop-shadow(0 2px 8px rgba(0,0,0,0.7)); }
+        .overlay-logos .logo-draggable.dragging { cursor: grabbing; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.85)); }
+        .overlay-logos .logo-draggable img { display: block; width: 100%; height: auto; pointer-events: none; }
+        .overlay-logos.locked .logo-draggable { pointer-events: none; cursor: default; }
 
         /* Running Text */
-        .ticker-wrapper {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: rgba(17, 17, 17, 0.9);
-            color: #fff;
-            padding: 8px 0;
-            overflow: hidden;
-            border-top: 2px solid #cc0000;
-            display: flex;
-            align-items: center;
-            z-index: 20;
-            pointer-events: none; 
-        }
+        .ticker-wrapper { position: absolute; bottom: 0; left: 0; width: 100%; background-color: rgba(17, 17, 17, 0.9); color: #fff; padding: 8px 0; overflow: hidden; border-top: 2px solid #cc0000; display: flex; align-items: center; z-index: 20; pointer-events: none; }
+        .ticker-label { background-color: #cc0000; color: white; padding: 0 15px; font-weight: bold; font-size: 14px; z-index: 2; white-space: nowrap; box-shadow: 5px 0 10px rgba(0,0,0,0.5); }
+        .ticker-content { display: inline-block; white-space: nowrap; padding-left: 100%; animation: marquee 15s linear infinite; font-size: 16px; font-weight: 500; }
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-        .ticker-label {
-            background-color: #cc0000;
-            color: white;
-            padding: 0 15px;
-            font-weight: bold;
-            font-size: 14px;
-            z-index: 2;
-            white-space: nowrap;
-            box-shadow: 5px 0 10px rgba(0,0,0,0.5);
-        }
+        /* Sidebar */
+        .sidebar { width: 400px; background-color: #ffffff; border: 1px solid #e5e5e5; border-radius: 12px; height: fit-content; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .sidebar h3 { margin-bottom: 15px; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
 
-        .ticker-content {
-            display: inline-block;
-            white-space: nowrap;
-            padding-left: 100%;
-            animation: marquee 15s linear infinite;
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        @keyframes marquee {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(-100%, 0); }
-        }
-
-        /* Info Video */
-        .video-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin: 15px 0;
-        }
-
-        .video-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .channel-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .channel-avatar {
-            width: 40px;
-            height: 40px;
-            background-color: #2e7d32;
-            border-radius: 50%;
-        }
-
-        .channel-text {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .channel-name {
-            font-weight: bold;
-            font-size: 15px;
-        }
-
-        .subscribers {
-            font-size: 12px;
-            color: #606060;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 8px 15px;
-            border: none;
-            background-color: #f0f0f0;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: background-color 0.2s;
-        }
-
-        .btn:hover {
-            background-color: #e0e0e0;
-        }
-
-        /* Sidebar (Kanan) */
-        .sidebar {
-            width: 400px;
-            background-color: #ffffff;
-            border: 1px solid #e5e5e5;
-            border-radius: 12px;
-            height: fit-content;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .sidebar h3 {
-            margin-bottom: 15px; 
-            font-size: 18px; 
-            border-bottom: 2px solid #eee; 
-            padding-bottom: 10px;
-        }
-
-        /* Form Styles */
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 25px;
-        }
-        
-        .form-group label {
-            font-weight: bold;
-            font-size: 14px;
-            color: #333;
-        }
-
-        .input-text {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            outline: none;
-            font-size: 14px;
-        }
-
-        .input-text:focus {
-            border-color: #0056b3;
-        }
-
-        .btn-submit {
-            background-color: #0056b3;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .btn-submit:hover {
-            background-color: #004494;
-        }
-
-        /* Tombol Timer Spesifik */
-        .timer-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 5px;
-        }
-
-        .btn-timer {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            color: white;
-            transition: opacity 0.2s;
-        }
-
-        .btn-timer:hover {
-            opacity: 0.8;
-        }
-
+        /* Forms */
+        .form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
+        .form-group label { font-weight: bold; font-size: 14px; color: #333; }
+        .input-text { padding: 10px; border: 1px solid #ccc; border-radius: 8px; outline: none; font-size: 14px; }
+        .input-text:focus { border-color: #0056b3; }
+        .btn-submit { background-color: #0056b3; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background-color 0.2s; }
+        .btn-submit:hover { background-color: #004494; }
+        .timer-controls { display: flex; gap: 10px; margin-top: 5px; }
+        .btn-timer { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; transition: opacity 0.2s; }
+        .btn-timer:hover { opacity: 0.8; }
         .btn-start { background-color: #28a745; }
         .btn-stop { background-color: #dc3545; }
         .btn-reset { background-color: #6c757d; }
 
+        /* Ratio selector */
+        .ratio-selector { display: flex; gap: 4px; background: #f0f0f0; padding: 4px; border-radius: 10px; }
+        .ratio-btn { flex: 1; padding: 10px 8px; border: none; background: transparent; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; color: #666; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .ratio-btn .icon-shape { display: inline-block; border: 2px solid currentColor; border-radius: 2px; }
+        .ratio-btn[data-ratio="original"] .icon-shape { width: 20px; height: 14px; }
+        .ratio-btn[data-ratio="16:9"]     .icon-shape { width: 22px; height: 12px; }
+        .ratio-btn[data-ratio="9:16"]     .icon-shape { width: 12px; height: 22px; }
+        .ratio-btn.active { background: #0056b3; color: white; box-shadow: 0 2px 6px rgba(0,86,179,0.35); }
+        .ratio-btn:hover:not(.active) { background: #e0e0e0; }
+
+        /* Logo list */
+        #logoList { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; }
+        .logo-item-preview { position: relative; display: flex; align-items: center; gap: 8px; padding: 8px; background: #fafafa; border: 1px solid #e5e5e5; border-radius: 8px; }
+        .logo-item-preview .thumb { width: 44px; height: 44px; flex-shrink: 0; background-color: #fff; background-size: contain; background-repeat: no-repeat; background-position: center; border-radius: 4px; border: 1px solid #eee; }
+        .logo-item-preview .controls { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .logo-item-preview .controls label { font-size: 11px; color: #666; font-weight: normal; }
+        .logo-item-preview .controls input[type="range"] { width: 100%; cursor: pointer; }
+        .logo-item-preview .btn-remove-logo { width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: #dc3545; color: white; border: none; cursor: pointer; font-size: 15px; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; transition: background 0.2s; }
+        .logo-item-preview .btn-remove-logo:hover { background: #b02a37; }
+
+        .logo-hint { font-size: 12px; color: #666; background: #f0f8ff; padding: 8px 10px; border-radius: 6px; border-left: 3px solid #0056b3; line-height: 1.4; }
+        .lock-row { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; padding: 8px 10px; background: #fff8e1; border-radius: 6px; border-left: 3px solid #f0ad4e; user-select: none; }
+        .lock-row input { cursor: pointer; }
+
         /* Responsif */
         @media (max-width: 1024px) {
-            .main-container {
-                flex-direction: column;
-            }
-            .sidebar {
-                width: 100%;
-            }
-            .nav-center {
-                display: none;
-            }
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; }
+            .nav-center { display: none; }
         }
     </style>
 </head>
@@ -424,42 +146,28 @@
         </div>
     </nav>
 
-    <!-- INPUT FILE TERSEMBUNYI -->
     <input type="file" id="videoInput" accept="video/*" style="display: none;">
 
     <!-- Main Content -->
     <main class="main-container">
-        
+
         <!-- Video Section -->
         <div class="video-section">
-            <div class="video-player-container">
-                <!-- Gambar Placeholder -->
+            <div class="video-player-container" id="playerContainer" data-ratio="16:9">
                 <img src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1200&auto=format&fit=crop" alt="Lapangan Sepak Bola" class="video-background" id="placeholderImage">
-                
-                <!-- Elemen Video HTML5 -->
                 <video id="mainVideo" controls style="display: none;"></video>
-                
-                <!-- Overlays -->
+
                 <div class="scoreboard">
                     <div class="score-team">
                         <span id="teamA">LOMBLEN UNITED</span>
                         <span id="scoreDisplay">1 - 0</span>
                         <span id="teamB">PLATINA FC</span>
                     </div>
-                    <div class="score-time" id="matchTime">
-                        41:56
-                    </div>
+                    <div class="score-time" id="matchTime">41:56</div>
                 </div>
 
-                <div class="overlay-logos">
-                    <div class="logo-circle" style="background-color: lightgreen;"></div>
-                    <div class="logo-circle" style="background-color: lightblue;"></div>
-                    <div class="logo-circle" style="background-color: yellow;"></div>
-                </div>
+                <div class="overlay-logos" id="overlayLogos"></div>
 
-                <!-- TEKS BESAR DI BAWAH VIDEO SUDAH DIHAPUS DARI SINI -->
-
-                <!-- Running Text -->
                 <div class="ticker-wrapper">
                     <div class="ticker-label">INFO MATCH</div>
                     <div class="ticker-content" id="runningText">
@@ -467,64 +175,79 @@
                     </div>
                 </div>
             </div>
-
-            <h1 class="video-title">Match Day 2 ETMC XXXV 2026 FLORES TIMUR</h1>
-            
-            <div class="video-actions">
-                <div class="channel-info">
-                    <div class="channel-avatar"></div>
-                    <div class="channel-text">
-                        <span class="channel-name">Diskominfo Flotim (Official Channel)</span>
-                        <span class="subscribers">134 rb subscriber</span>
-                    </div>
-                    <button class="btn" style="background-color: #0f0f0f; color: white; margin-left: 10px;">Subscribe</button>
-                </div>
-
-                <div class="action-buttons">
-                    <button class="btn">&#128077; 134</button>
-                    <button class="btn">&#8617; Bagikan</button>
-                    <button class="btn">&#11015; Unduh</button>
-                </div>
-            </div>
+            <!-- BLOK JUDUL & ACTION SUDAH DIHAPUS -->
         </div>
 
-        <!-- Sidebar (Panel Kontrol) -->
+        <!-- Sidebar -->
         <div class="sidebar">
             <h3>Panel Kontrol Admin</h3>
-            
-            <!-- Form 1: Running Text -->
+
+            <!-- Running Text -->
             <div class="form-group">
                 <label for="inputText">Input Teks Berjalan (Ticker):</label>
                 <input type="text" id="inputText" class="input-text" placeholder="Ketik informasi pertandingan...">
                 <button id="btnKirim" class="btn-submit">Kirim Teks Berjalan</button>
             </div>
 
-            <!-- Form 2: Skor & Waktu -->
+            <!-- Skor & Waktu -->
             <div class="form-group" style="border-top: 1px dashed #ccc; padding-top: 15px;">
                 <label>Ubah Papan Skor & Waktu:</label>
                 <input type="text" id="inputTeamA" class="input-text" placeholder="Nama Tim Kiri">
                 <input type="text" id="inputScore" class="input-text" placeholder="Skor (Contoh: 2 - 1)">
                 <input type="text" id="inputTeamB" class="input-text" placeholder="Nama Tim Kanan">
                 <input type="text" id="inputTime" class="input-text" placeholder="Set Waktu (Contoh: 75:30)">
-                
                 <button id="btnUpdateScore" class="btn-submit">Perbarui Skor & Set Waktu</button>
-                
-                <!-- Tombol Kontrol Timer -->
                 <div class="timer-controls">
                     <button id="btnStartTimer" class="btn-timer btn-start">Mulai Waktu</button>
                     <button id="btnStopTimer" class="btn-timer btn-stop" style="display: none;">Jeda Waktu</button>
                     <button id="btnResetTimer" class="btn-timer btn-reset">Reset 00:00</button>
                 </div>
             </div>
-        </div>
 
+            <!-- Rasio Tampilan -->
+            <div class="form-group" style="border-top: 1px dashed #ccc; padding-top: 15px;">
+                <label>Rasio Tampilan Video:</label>
+                <div class="ratio-selector">
+                    <button type="button" class="ratio-btn active" data-ratio="original">
+                        <span class="icon-shape"></span>
+                        ASLI
+                    </button>
+                    <button type="button" class="ratio-btn" data-ratio="16:9">
+                        <span class="icon-shape"></span>
+                        16:9
+                    </button>
+                    <button type="button" class="ratio-btn" data-ratio="9:16">
+                        <span class="icon-shape"></span>
+                        9:16
+                    </button>
+                </div>
+                <small style="color:#888;font-size:12px;line-height:1.4;">
+                    <b>ASLI</b> = ikut rasio video/gambar. <b>16:9</b> = landscape. <b>9:16</b> = portrait.
+                </small>
+            </div>
+
+            <!-- Kelola Logo -->
+            <div class="form-group" style="border-top: 1px dashed #ccc; padding-top: 15px;">
+                <label for="logoInput">Kelola Logo Video:</label>
+                <input type="file" id="logoInput" accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml,image/gif" class="input-text" style="padding: 8px; cursor: pointer;">
+                <button id="btnAddLogo" class="btn-submit">Tambah Logo</button>
+
+                <div class="logo-hint">
+                    💡 <b>Tips:</b> Logo tampil sesuai bentuk aslinya. <b>Geser logo langsung di atas video</b> untuk mengatur posisinya (mouse / sentuhan di HP).
+                </div>
+
+                <div id="logoList"></div>
+
+                <label class="lock-row">
+                    <input type="checkbox" id="lockPositions">
+                    <span>🔒 Kunci posisi logo</span>
+                </label>
+            </div>
+        </div>
     </main>
 
-    <!-- JavaScript -->
     <script>
-        /* ==========================================
-           1. LOGIKA UNTUK RUNNING TEXT
-           ========================================== */
+        /* ============ 1. RUNNING TEXT ============ */
         const btnKirim = document.getElementById('btnKirim');
         const inputText = document.getElementById('inputText');
         const runningText = document.getElementById('runningText');
@@ -534,155 +257,346 @@
             if (newText.trim() !== "") {
                 runningText.textContent = newText;
                 runningText.style.animation = 'none';
-                runningText.offsetHeight; /* Trigger reflow */
+                runningText.offsetHeight;
                 runningText.style.animation = 'marquee 15s linear infinite';
                 inputText.value = '';
             } else {
                 alert("Teks tidak boleh kosong!");
             }
         }
-
         btnKirim.addEventListener('click', updateRunningText);
-        inputText.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                updateRunningText();
-            }
+        inputText.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); updateRunningText(); }
         });
 
-        /* ==========================================
-           2. LOGIKA UNTUK UBAH SKOR & TIM
-           ========================================== */
+        /* ============ 2. SKOR & TIM ============ */
         const btnUpdateScore = document.getElementById('btnUpdateScore');
         const inputTeamA = document.getElementById('inputTeamA');
-        const inputScore = document.getElementById('inputScore');
-        const inputTeamB = document.getElementById('inputTeamB');
-        const inputTime = document.getElementById('inputTime');
-
+        const inputScore  = document.getElementById('inputScore');
+        const inputTeamB  = document.getElementById('inputTeamB');
+        const inputTime   = document.getElementById('inputTime');
         const teamA = document.getElementById('teamA');
         const scoreDisplay = document.getElementById('scoreDisplay');
         const teamB = document.getElementById('teamB');
         const matchTime = document.getElementById('matchTime');
 
         btnUpdateScore.addEventListener('click', () => {
-            if (inputTeamA.value.trim() !== "") {
-                teamA.textContent = inputTeamA.value.toUpperCase();
-            }
-            if (inputScore.value.trim() !== "") {
-                scoreDisplay.textContent = inputScore.value;
-            }
-            if (inputTeamB.value.trim() !== "") {
-                teamB.textContent = inputTeamB.value.toUpperCase();
-            }
-            // Logika Set Waktu Manual
+            if (inputTeamA.value.trim() !== "") teamA.textContent = inputTeamA.value.toUpperCase();
+            if (inputScore.value.trim() !== "") scoreDisplay.textContent = inputScore.value;
+            if (inputTeamB.value.trim() !== "") teamB.textContent = inputTeamB.value.toUpperCase();
             if (inputTime.value.trim() !== "") {
-                const timeParts = inputTime.value.split(':');
-                if (timeParts.length === 2) {
-                    const mins = parseInt(timeParts[0]) || 0;
-                    const secs = parseInt(timeParts[1]) || 0;
-                    totalSeconds = (mins * 60) + secs;
+                const p = inputTime.value.split(':');
+                if (p.length === 2) {
+                    totalSeconds = (parseInt(p[0]) || 0) * 60 + (parseInt(p[1]) || 0);
                     updateTimerDisplay();
                 }
             }
-
-            // Kosongkan form
-            inputTeamA.value = '';
-            inputScore.value = '';
-            inputTeamB.value = '';
-            inputTime.value = '';
+            inputTeamA.value = ''; inputScore.value = ''; inputTeamB.value = ''; inputTime.value = '';
         });
 
-
-        /* ==========================================
-           3. LOGIKA UNTUK WAKTU BERJALAN OTOMATIS (TIMER)
-           ========================================== */
-        let totalSeconds = (41 * 60) + 56; // Mulai dari 41:56
+        /* ============ 3. TIMER ============ */
+        let totalSeconds = 41 * 60 + 56;
         let timerInterval = null;
         let isRunning = false;
-
         const btnStartTimer = document.getElementById('btnStartTimer');
-        const btnStopTimer = document.getElementById('btnStopTimer');
+        const btnStopTimer  = document.getElementById('btnStopTimer');
         const btnResetTimer = document.getElementById('btnResetTimer');
 
-        function formatTime(seconds) {
-            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-            const s = (seconds % 60).toString().padStart(2, '0');
-            return `${m}:${s}`;
-        }
-
-        function updateTimerDisplay() {
-            matchTime.textContent = formatTime(totalSeconds);
-        }
+        const formatTime = s => `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+        const updateTimerDisplay = () => { matchTime.textContent = formatTime(totalSeconds); };
 
         function startTimer() {
             if (!isRunning) {
-                timerInterval = setInterval(() => {
-                    totalSeconds++;
-                    updateTimerDisplay();
-                }, 1000);
+                timerInterval = setInterval(() => { totalSeconds++; updateTimerDisplay(); }, 1000);
                 isRunning = true;
-                
                 btnStartTimer.style.display = 'none';
                 btnStopTimer.style.display = 'block';
             }
         }
-
         function stopTimer() {
             if (isRunning) {
                 clearInterval(timerInterval);
                 isRunning = false;
-                
                 btnStartTimer.style.display = 'block';
                 btnStopTimer.style.display = 'none';
             }
         }
-
-        function resetTimer() {
-            stopTimer();
-            totalSeconds = 0;
-            updateTimerDisplay();
-        }
-
+        function resetTimer() { stopTimer(); totalSeconds = 0; updateTimerDisplay(); }
         btnStartTimer.addEventListener('click', startTimer);
         btnStopTimer.addEventListener('click', stopTimer);
         btnResetTimer.addEventListener('click', resetTimer);
+        window.addEventListener('load', () => { updateTimerDisplay(); startTimer(); });
 
-        window.addEventListener('load', () => {
-            updateTimerDisplay(); 
-            startTimer();         
-        });
-
-
-        /* ==========================================
-           4. LOGIKA UNTUK UPLOAD & PUTAR VIDEO
-           ========================================== */
+        /* ============ 4. UPLOAD VIDEO ============ */
         const btnUpload = document.getElementById('btnUpload');
         const videoInput = document.getElementById('videoInput');
         const mainVideo = document.getElementById('mainVideo');
         const placeholderImage = document.getElementById('placeholderImage');
-
         let currentVideoUrl = null;
 
-        btnUpload.addEventListener('click', () => {
-            videoInput.click();
-        });
-
-        videoInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            
+        btnUpload.addEventListener('click', () => videoInput.click());
+        videoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
             if (file) {
-                if (currentVideoUrl) {
-                    URL.revokeObjectURL(currentVideoUrl);
-                }
-
+                if (currentVideoUrl) URL.revokeObjectURL(currentVideoUrl);
                 currentVideoUrl = URL.createObjectURL(file);
                 mainVideo.src = currentVideoUrl;
-                
                 placeholderImage.style.display = 'none';
                 mainVideo.style.display = 'block';
-                
                 mainVideo.play();
             }
+        });
+
+        /* ============ 5. KELOLA LOGO ============ */
+        const overlayLogos = document.getElementById('overlayLogos');
+        const logoInput    = document.getElementById('logoInput');
+        const btnAddLogo   = document.getElementById('btnAddLogo');
+        const logoList     = document.getElementById('logoList');
+        const lockCheckbox = document.getElementById('lockPositions');
+
+        let logos = [];
+        let logoIdCounter = 0;
+        const newLogoId = () => 'logo-' + (++logoIdCounter);
+
+        function renderLogos() {
+            overlayLogos.innerHTML = '';
+            logos.forEach((logo, idx) => {
+                const wrap = document.createElement('div');
+                wrap.className = 'logo-draggable';
+                wrap.style.left  = logo.x + '%';
+                wrap.style.top   = logo.y + '%';
+                wrap.style.width = logo.width + 'px';
+
+                const img = document.createElement('img');
+                img.src = logo.src;
+                img.alt = 'Logo ' + (idx + 1);
+                img.draggable = false;
+                wrap.appendChild(img);
+
+                setupDrag(wrap, logo);
+                overlayLogos.appendChild(wrap);
+            });
+
+            logoList.innerHTML = '';
+            if (logos.length === 0) {
+                logoList.innerHTML = '<div style="color:#999;font-size:12px;font-style:italic;padding:8px;text-align:center;">Belum ada logo. Upload di atas.</div>';
+                return;
+            }
+            logos.forEach((logo, idx) => {
+                const item = document.createElement('div');
+                item.className = 'logo-item-preview';
+
+                const thumb = document.createElement('div');
+                thumb.className = 'thumb';
+                thumb.style.backgroundImage = `url("${logo.src}")`;
+
+                const controls = document.createElement('div');
+                controls.className = 'controls';
+
+                const sizeLabel = document.createElement('label');
+                sizeLabel.textContent = `Ukuran: ${logo.width}px`;
+
+                const sizeSlider = document.createElement('input');
+                sizeSlider.type = 'range';
+                sizeSlider.min = '20';
+                sizeSlider.max = '400';
+                sizeSlider.value = logo.width;
+                sizeSlider.addEventListener('input', (e) => {
+                    logo.width = parseInt(e.target.value);
+                    sizeLabel.textContent = `Ukuran: ${logo.width}px`;
+                    const wrap = overlayLogos.children[idx];
+                    if (wrap) wrap.style.width = logo.width + 'px';
+                    clampPosition(logo, overlayLogos.children[idx]);
+                });
+
+                controls.appendChild(sizeLabel);
+                controls.appendChild(sizeSlider);
+
+                const btnRemove = document.createElement('button');
+                btnRemove.className = 'btn-remove-logo';
+                btnRemove.textContent = '×';
+                btnRemove.title = 'Hapus logo';
+                btnRemove.addEventListener('click', () => {
+                    logos.splice(idx, 1);
+                    renderLogos();
+                });
+
+                item.appendChild(thumb);
+                item.appendChild(controls);
+                item.appendChild(btnRemove);
+                logoList.appendChild(item);
+            });
+        }
+
+        function setupDrag(el, logoData) {
+            let dragging = false;
+            let startX = 0, startY = 0;
+            let startLeftPx = 0, startTopPx = 0;
+            let rect = null;
+
+            function onDown(e) {
+                if (e.button !== undefined && e.button !== 0) return;
+                if (lockCheckbox.checked) return;
+                e.preventDefault();
+                e.stopPropagation();
+
+                const p = e.touches ? e.touches[0] : e;
+                startX = p.clientX;
+                startY = p.clientY;
+                rect = overlayLogos.getBoundingClientRect();
+                startLeftPx = (logoData.x / 100) * rect.width;
+                startTopPx  = (logoData.y / 100) * rect.height;
+
+                dragging = true;
+                el.classList.add('dragging');
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+                document.addEventListener('touchmove', onMove, { passive: false });
+                document.addEventListener('touchend', onUp);
+            }
+
+            function onMove(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                const p = e.touches ? e.touches[0] : e;
+                const dx = p.clientX - startX;
+                const dy = p.clientY - startY;
+
+                const maxLeft = rect.width  - el.offsetWidth;
+                const maxTop  = rect.height - el.offsetHeight;
+
+                const newLeft = Math.max(0, Math.min(startLeftPx + dx, maxLeft));
+                const newTop  = Math.max(0, Math.min(startTopPx  + dy, maxTop));
+
+                logoData.x = (newLeft / rect.width)  * 100;
+                logoData.y = (newTop  / rect.height) * 100;
+
+                el.style.left = logoData.x + '%';
+                el.style.top  = logoData.y + '%';
+            }
+
+            function onUp() {
+                if (!dragging) return;
+                dragging = false;
+                el.classList.remove('dragging');
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('touchend', onUp);
+            }
+
+            el.addEventListener('mousedown', onDown);
+            el.addEventListener('touchstart', onDown, { passive: false });
+        }
+
+        function clampPosition(logo, el) {
+            if (!el) return;
+            const rect = overlayLogos.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+            const maxLeft = rect.width  - el.offsetWidth;
+            const maxTop  = rect.height - el.offsetHeight;
+            const leftPx = (logo.x / 100) * rect.width;
+            const topPx  = (logo.y / 100) * rect.height;
+            if (leftPx > maxLeft) logo.x = (Math.max(0, maxLeft) / rect.width) * 100;
+            if (topPx  > maxTop)  logo.y = (Math.max(0, maxTop)  / rect.height) * 100;
+            el.style.left = logo.x + '%';
+            el.style.top  = logo.y + '%';
+        }
+
+        window.addEventListener('resize', () => {
+            logos.forEach((logo, idx) => clampPosition(logo, overlayLogos.children[idx]));
+        });
+
+        btnAddLogo.addEventListener('click', () => {
+            const file = logoInput.files[0];
+            if (!file) { alert('Pilih file logo terlebih dahulu!'); return; }
+            if (!file.type.startsWith('image/')) { alert('File harus berupa gambar!'); return; }
+            if (file.size > 3 * 1024 * 1024) { alert('Ukuran logo maksimal 3 MB.'); return; }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const n = logos.length;
+                logos.push({
+                    id: newLogoId(),
+                    src: e.target.result,
+                    x: Math.max(60, 92 - n * 6),
+                    y: 5 + n * 4,
+                    width: 70
+                });
+                renderLogos();
+                logoInput.value = '';
+                setTimeout(() => logos.forEach((lg, i) => clampPosition(lg, overlayLogos.children[i])), 30);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        lockCheckbox.addEventListener('change', () => {
+            overlayLogos.classList.toggle('locked', lockCheckbox.checked);
+        });
+
+        /* ============ 6. RASIO TAMPILAN ============ */
+        const playerContainer = document.getElementById('playerContainer');
+        const ratioButtons = document.querySelectorAll('.ratio-btn');
+        let currentRatio = 'original';
+
+        function getOriginalPaddingTop() {
+            if (mainVideo.style.display === 'block' && mainVideo.videoWidth > 0 && mainVideo.videoHeight > 0) {
+                return (mainVideo.videoHeight / mainVideo.videoWidth) * 100;
+            }
+            if (placeholderImage && placeholderImage.naturalWidth > 0 && placeholderImage.naturalHeight > 0) {
+                return (placeholderImage.naturalHeight / placeholderImage.naturalWidth) * 100;
+            }
+            return 56.25;
+        }
+
+        function applyAspectRatio(ratio) {
+            currentRatio = ratio;
+            playerContainer.setAttribute('data-ratio', ratio);
+
+            if (ratio === 'original') {
+                const pad = getOriginalPaddingTop();
+                playerContainer.style.paddingTop = pad + '%';
+                playerContainer.style.maxWidth = '';
+            } else {
+                playerContainer.style.paddingTop = '';
+                playerContainer.style.maxWidth = '';
+            }
+
+            clearTimeout(playerContainer._clampTimer);
+            playerContainer._clampTimer = setTimeout(() => {
+                logos.forEach((lg, i) => clampPosition(lg, overlayLogos.children[i]));
+            }, 400);
+        }
+
+        ratioButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                ratioButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                applyAspectRatio(btn.dataset.ratio);
+            });
+        });
+
+        mainVideo.addEventListener('loadedmetadata', () => {
+            if (currentRatio === 'original') applyAspectRatio('original');
+        });
+        if (placeholderImage) {
+            if (placeholderImage.complete && placeholderImage.naturalWidth > 0) {
+                if (currentRatio === 'original') applyAspectRatio('original');
+            }
+            placeholderImage.addEventListener('load', () => {
+                if (currentRatio === 'original') applyAspectRatio('original');
+            });
+        }
+
+        /* ============ 7. LOGO DEFAULT ============ */
+        const DEFAULT_LOGOS = [
+            // Contoh: { id: newLogoId(), src: 'logos/tim-a.png', x: 88, y: 5, width: 70 },
+        ];
+
+        window.addEventListener('load', () => {
+            logos = [...DEFAULT_LOGOS];
+            renderLogos();
+            applyAspectRatio(currentRatio);
         });
     </script>
 </body>
